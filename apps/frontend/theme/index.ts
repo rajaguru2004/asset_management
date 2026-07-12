@@ -44,3 +44,12 @@ export const CHART_TOOLTIP_STYLE = {
   color: 'var(--foreground)',
   fontSize: '0.8rem',
 } as const;
+
+/**
+ * contentStyle only themes the tooltip box; recharts inlines item text color
+ * as `entry.color || '#000'` (black when fills live on <Cell>, e.g. pie /
+ * waterfall) and the label has its own default. Pass these alongside
+ * CHART_TOOLTIP_STYLE so the text follows the theme too.
+ */
+export const CHART_TOOLTIP_LABEL_STYLE = { color: 'var(--foreground)' } as const;
+export const CHART_TOOLTIP_ITEM_STYLE = { color: 'var(--foreground)' } as const;

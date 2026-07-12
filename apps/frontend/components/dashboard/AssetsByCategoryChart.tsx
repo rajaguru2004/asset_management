@@ -4,7 +4,12 @@ import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { CHART_COLORS, CHART_TOOLTIP_STYLE } from '@/theme';
+import {
+  CHART_COLORS,
+  CHART_TOOLTIP_ITEM_STYLE,
+  CHART_TOOLTIP_LABEL_STYLE,
+  CHART_TOOLTIP_STYLE,
+} from '@/theme';
 import type { DashboardAnalytics } from '@/types/organization';
 
 type CatRow = DashboardAnalytics['categoryBreakdown'][number];
@@ -48,7 +53,11 @@ export function AssetsByCategoryChart({ data }: { data: DashboardAnalytics['cate
                     <Cell key={r.categoryId} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
+                <Tooltip
+                  contentStyle={CHART_TOOLTIP_STYLE}
+                  labelStyle={CHART_TOOLTIP_LABEL_STYLE}
+                  itemStyle={CHART_TOOLTIP_ITEM_STYLE}
+                />
                 <Legend
                   verticalAlign="bottom"
                   height={36}

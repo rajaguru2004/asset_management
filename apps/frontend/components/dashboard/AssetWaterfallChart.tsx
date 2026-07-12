@@ -13,7 +13,12 @@ import {
   YAxis,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { CHART_TOOLTIP_STYLE, STATUS_COLORS } from '@/theme';
+import {
+  CHART_TOOLTIP_ITEM_STYLE,
+  CHART_TOOLTIP_LABEL_STYLE,
+  CHART_TOOLTIP_STYLE,
+  STATUS_COLORS,
+} from '@/theme';
 import type { DashboardAnalytics } from '@/types/organization';
 
 interface Row {
@@ -96,6 +101,8 @@ export function AssetWaterfallChart({ data }: { data: DashboardAnalytics['assets
               />
               <Tooltip
                 contentStyle={CHART_TOOLTIP_STYLE}
+                labelStyle={CHART_TOOLTIP_LABEL_STYLE}
+                itemStyle={CHART_TOOLTIP_ITEM_STYLE}
                 cursor={{ fill: 'var(--muted-bg)', opacity: 0.5 }}
                 formatter={(value, name) => (name === 'Assets' ? [value, 'Assets'] : [])}
               />

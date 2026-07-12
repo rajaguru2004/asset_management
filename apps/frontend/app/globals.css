@@ -8,6 +8,9 @@
  * (charts) and by the Tailwind color utilities mapped in @theme inline below.
  * ────────────────────────────────────────────────────────────────────────── */
 :root {
+  /* Native widgets (date/time pickers, scrollbars) follow the active theme. */
+  color-scheme: light;
+
   --background: #f6f7fb;
   --foreground: #0f172a;
 
@@ -32,6 +35,8 @@
 }
 
 .dark {
+  color-scheme: dark;
+
   --background: #0b1120;
   --foreground: #e2e8f0;
 

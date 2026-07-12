@@ -13,7 +13,11 @@ import {
   YAxis,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { CHART_TOOLTIP_STYLE } from '@/theme';
+import {
+  CHART_TOOLTIP_ITEM_STYLE,
+  CHART_TOOLTIP_LABEL_STYLE,
+  CHART_TOOLTIP_STYLE,
+} from '@/theme';
 import type { DashboardAnalytics } from '@/types/organization';
 
 type CatRow = DashboardAnalytics['categoryBreakdown'][number];
@@ -57,6 +61,8 @@ export function OverdueByCategoryChart({ data }: { data: DashboardAnalytics['cat
                 />
                 <Tooltip
                   contentStyle={CHART_TOOLTIP_STYLE}
+                  labelStyle={CHART_TOOLTIP_LABEL_STYLE}
+                  itemStyle={CHART_TOOLTIP_ITEM_STYLE}
                   cursor={{ fill: 'var(--muted-bg)', opacity: 0.5 }}
                 />
                 <Legend formatter={(v) => <span className="text-xs text-muted">{v}</span>} />

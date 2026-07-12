@@ -12,7 +12,12 @@ import {
   YAxis,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { CHART_COLORS, CHART_TOOLTIP_STYLE } from '@/theme';
+import {
+  CHART_COLORS,
+  CHART_TOOLTIP_ITEM_STYLE,
+  CHART_TOOLTIP_LABEL_STYLE,
+  CHART_TOOLTIP_STYLE,
+} from '@/theme';
 
 /** Horizontal bar: employee count per role. */
 export function TeamRoleChart({ employeesByRole }: { employeesByRole: Record<string, number> }) {
@@ -60,6 +65,8 @@ export function TeamRoleChart({ employeesByRole }: { employeesByRole: Record<str
                 />
                 <Tooltip
                   contentStyle={CHART_TOOLTIP_STYLE}
+                  labelStyle={CHART_TOOLTIP_LABEL_STYLE}
+                  itemStyle={CHART_TOOLTIP_ITEM_STYLE}
                   cursor={{ fill: 'var(--muted-bg)', opacity: 0.5 }}
                 />
                 <Bar
