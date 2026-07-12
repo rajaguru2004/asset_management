@@ -1,67 +1,66 @@
 import axiosInstance from '@/lib/axios';
 import type { ApiResponse } from '@/types/api';
 import type {
+  AuthResponse,
   LoginCredentials,
-  LoginResponse,
   RegisterData,
   User,
 } from '@/types/auth';
 
 const ACCESS_TOKEN_KEY = 'accessToken';
-const REFRESH_TOKEN_KEY = 'refreshToken';
 const USER_KEY = 'user';
 
 class AuthService {
-  async login(credentials: LoginCredentials): Promise<ApiResponse<LoginResponse>> {
+  login(credentials: LoginCredentials): Promise<ApiResponse<AuthResponse>> {
     return axiosInstance.post('/auth/login', credentials);
   }
 
-  async register(data: RegisterData): Promise<ApiResponse<LoginResponse>> {
+  register(data: RegisterData): Promise<ApiResponse<AuthResponse>> {
     return axiosInstance.post('/auth/register', data);
   }
 
-  async getMe(): Promise<ApiResponse<User>> {
+  getMe(): Promise<ApiResponse<User>> {
     return axiosInstance.get('/auth/me');
   }
 
+  changePassword(currentPassword: string, newPassword: string) {
+    return axiosInstance.post('/auth/change-password', {
+      currentPassword,
+      newPassword,
+    });
+  }
+
   async logout(): Promise<void> {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(ACCESS_TOKEN_KEY);
-      localStorage.removeItem(REFRESH_TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
+    try {
+      await axiosInstance.post('/auth/logout');
+    } catch {
+      // stateless logout — ignore network errors, still clear locally
     }
+    this.clear();
   }
 
-  saveTokens(accessToken: string, refreshToken: string): void {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-    }
+  // ── local session helpers ─────────────────────────────────────────────
+  saveToken(token: string) {
+    if (typeof window !== 'undefined') localStorage.setItem(ACCESS_TOKEN_KEY, token);
   }
-
-  saveUser(user: User): void {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-    }
+  saveUser(user: User) {
+    if (typeof window !== 'undefined') localStorage.setItem(USER_KEY, JSON.stringify(user));
   }
-
   getUser(): User | null {
-    if (typeof window !== 'undefined') {
-      const raw = localStorage.getItem(USER_KEY);
-      return raw ? (JSON.parse(raw) as User) : null;
-    }
-    return null;
+    if (typeof window === 'undefined') return null;
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? (JSON.parse(raw) as User) : null;
   }
-
-  getAccessToken(): string | null {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem(ACCESS_TOKEN_KEY);
-    }
-    return null;
+  getToken(): string | null {
+    return typeof window !== 'undefined' ? localStorage.getItem(ACCESS_TOKEN_KEY) : null;
   }
-
   isAuthenticated(): boolean {
-    return !!this.getAccessToken();
+    return !!this.getToken();
+  }
+  clear() {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
   }
 }
 

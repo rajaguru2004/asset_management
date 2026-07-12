@@ -1,115 +1,91 @@
 import {
+  BadRequestException,
+  ConflictException,
   Injectable,
   UnauthorizedException,
-  ConflictException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma, Role, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
+import { USER_SAFE_SELECT } from '../common/selects/user.select';
+import { EMPLOYEE } from '../common/rbac/permissions.enum';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-
-const USER_SAFE_SELECT = {
-  id: true,
-  email: true,
-  fullName: true,
-  role: true,
-  isActive: true,
-  createdAt: true,
-  updatedAt: true,
-} satisfies Prisma.UserSelect;
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
-    private jwtService: JwtService,
+    private jwt: JwtService,
   ) {}
 
+  /** Self-signup — always creates an Employee (no self-elevation). */
   async register(dto: RegisterDto) {
-    const existingUser = await this.prisma.user.findUnique({
+    const exists = await this.prisma.user.findUnique({
       where: { email: dto.email },
+      select: { id: true },
     });
+    if (exists) throw new ConflictException('Email already registered');
 
-    if (existingUser) {
-      throw new ConflictException('Email already exists');
-    }
-
-    const passwordHash = await bcrypt.hash(dto.password, 10);
-
+    const password = await bcrypt.hash(dto.password, 10);
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
-        passwordHash,
-        fullName: dto.fullName,
-        role: dto.role ?? Role.STAFF,
+        password,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        phone: dto.phone ?? '',
+        roleId: EMPLOYEE, // forced — role is never chosen at signup
       },
       select: USER_SAFE_SELECT,
     });
 
-    const accessToken = this.generateToken(user);
-
-    return { user, accessToken };
+    return { user, accessToken: this.sign(user.id, user.roleId) };
   }
 
   async login(dto: LoginDto) {
-    const user = await this.validateUser(dto.email, dto.password);
-
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+    // Generic error message — no user enumeration.
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('Invalid email or password');
     }
+    const ok = await bcrypt.compare(dto.password, user.password);
+    if (!ok) throw new UnauthorizedException('Invalid email or password');
 
-    const accessToken = this.generateToken(user);
-
-    return { user: this.sanitizeUser(user), accessToken };
+    const safe = await this.prisma.user.findUnique({
+      where: { id: user.id },
+      select: USER_SAFE_SELECT,
+    });
+    return { user: safe, accessToken: this.sign(user.id, user.roleId) };
   }
 
-  async getMe(userId: string) {
+  async getMe(userId: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: USER_SAFE_SELECT,
     });
-
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
-
+    if (!user) throw new UnauthorizedException('Session invalid');
     return user;
   }
 
-  async validateUser(email: string, password: string): Promise<User | null> {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
+  async changePassword(userId: number, dto: ChangePasswordDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('Session invalid');
+
+    const ok = await bcrypt.compare(dto.currentPassword, user.password);
+    if (!ok) throw new BadRequestException('Current password is incorrect');
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: await bcrypt.hash(dto.newPassword, 10) },
     });
-
-    if (!user || !user.isActive) {
-      return null;
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-
-    if (!isPasswordValid) {
-      return null;
-    }
-
-    return user;
+    return { message: 'Password updated' };
   }
 
-  private generateToken(user: {
-    id: string;
-    email: string;
-    role: Role;
-  }): string {
-    return this.jwtService.sign({
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    });
-  }
-
-  private sanitizeUser(user: User) {
-    const { passwordHash: _passwordHash, ...sanitized } = user;
-    return sanitized;
+  private sign(sub: number, roleId: number): string {
+    return this.jwt.sign({ sub, roleId });
   }
 }

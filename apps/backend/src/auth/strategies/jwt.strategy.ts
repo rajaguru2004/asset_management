@@ -3,43 +3,41 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
+import { USER_SAFE_SELECT } from '../../common/selects/user.select';
 
 interface JwtPayload {
-  sub: string;
-  email: string;
-  role: string;
+  sub: number;
+  roleId: number;
 }
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    private configService: ConfigService,
+    config: ConfigService,
     private prisma: PrismaService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey:
-        configService.get('JWT_SECRET') || 'asset-management-secret-key-2026',
+        config.get<string>('JWT_SECRET') || 'asset-management-secret-key-2026',
     });
   }
 
+  /**
+   * Runs on every authenticated request. Reads the user fresh from the DB so
+   * role changes (promotions/deactivations) take effect immediately — this is
+   * what makes live promotion work without a re-login. The returned object
+   * becomes `req.user`.
+   */
   async validate(payload: JwtPayload) {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      select: {
-        id: true,
-        email: true,
-        fullName: true,
-        role: true,
-        isActive: true,
-      },
+      select: USER_SAFE_SELECT,
     });
-
     if (!user || !user.isActive) {
-      throw new UnauthorizedException('User not found or inactive');
+      throw new UnauthorizedException('Account not found or inactive');
     }
-
     return user;
   }
 }

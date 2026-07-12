@@ -1,92 +1,70 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
   Body,
+  Controller,
+  Delete,
+  Get,
   Param,
+  ParseIntPipe,
+  Patch,
+  Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiParam,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { QueryUsersDto } from './dto/query-users.dto';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../common/decorators/roles.decorator';
+import { AssignRoleDto } from './dto/assign-role.dto';
+import { RequirePermission } from '../common/decorators/require-permission.decorator';
+import { Resource, Action } from '../common/rbac/permissions.enum';
 
-@ApiTags('Users')
+@ApiTags('Employee Directory')
 @ApiBearerAuth('JWT-auth')
 @Controller('users')
-@UseGuards(RolesGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly users: UsersService) {}
 
   @Get()
-  @ApiOperation({
-    summary: 'Get all users',
-    description: 'List all users with pagination and search',
-  })
-  @ApiResponse({ status: 200, description: 'Users retrieved successfully' })
+  @RequirePermission({ resource: Resource.EMPLOYEE_DIRECTORY, action: Action.VIEW })
+  @ApiOperation({ summary: 'List employees (search / filter / paginate)' })
   findAll(@Query() query: QueryUsersDto) {
-    return this.usersService.findAll(query);
+    return this.users.findAll(query);
   }
 
   @Get(':id')
-  @ApiOperation({
-    summary: 'Get user by ID',
-    description: 'Get detailed user information',
-  })
-  @ApiParam({ name: 'id', description: 'User UUID' })
-  @ApiResponse({ status: 200, description: 'User found' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+  @RequirePermission({ resource: Resource.EMPLOYEE_DIRECTORY, action: Action.VIEW })
+  @ApiOperation({ summary: 'Get an employee profile' })
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.users.findOne(id);
   }
 
   @Post()
-  @Roles('ADMIN')
-  @ApiOperation({
-    summary: 'Create new user',
-    description: 'Create a new user account (Admin only)',
-  })
-  @ApiResponse({ status: 201, description: 'User created successfully' })
-  @ApiResponse({ status: 409, description: 'Email already exists' })
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  @RequirePermission({ resource: Resource.EMPLOYEE_DIRECTORY, action: Action.CREATE })
+  @ApiOperation({ summary: 'Create an employee (any role)' })
+  create(@Body() dto: CreateUserDto) {
+    return this.users.create(dto);
   }
 
   @Patch(':id')
-  @Roles('ADMIN')
+  @RequirePermission({ resource: Resource.EMPLOYEE_DIRECTORY, action: Action.UPDATE })
+  @ApiOperation({ summary: 'Update profile / department / status' })
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
+    return this.users.update(id, dto);
+  }
+
+  @Patch(':id/role')
+  @RequirePermission({ resource: Resource.EMPLOYEE_DIRECTORY, action: Action.UPDATE })
   @ApiOperation({
-    summary: 'Update user',
-    description: 'Update user information (Admin only)',
+    summary: 'Promote / demote — the only place a role changes (live, no re-login)',
   })
-  @ApiParam({ name: 'id', description: 'User UUID' })
-  @ApiResponse({ status: 200, description: 'User updated successfully' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+  assignRole(@Param('id', ParseIntPipe) id: number, @Body() dto: AssignRoleDto) {
+    return this.users.assignRole(id, dto.roleId);
   }
 
   @Delete(':id')
-  @Roles('ADMIN')
-  @ApiOperation({
-    summary: 'Delete user',
-    description: 'Delete a user (Admin only)',
-  })
-  @ApiParam({ name: 'id', description: 'User UUID' })
-  @ApiResponse({ status: 200, description: 'User deleted successfully' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  @RequirePermission({ resource: Resource.EMPLOYEE_DIRECTORY, action: Action.DELETE })
+  @ApiOperation({ summary: 'Soft-deactivate an employee' })
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.users.remove(id);
   }
 }

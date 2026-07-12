@@ -1,5 +1,10 @@
-// Asset Management System - Prisma schema
-// Postgres. Mirrors the HRM stack (Prisma 5 + @prisma/client), clean asset domain.
+// AssetFlow — Prisma schema (Module 1 + 3: Auth, RBAC, Organization Setup)
+// Postgres. Int surrogate keys; roleId is the ONLY authorization field.
+// Permission matrix lives in code (common/rbac), not in the DB.
+//
+// Module 4+ models (Asset, Booking, Maintenance, Audit) are intentionally
+// NOT here yet — this build covers Org Setup only. AssetCategory.customFields
+// + tagPrefix are forward-compatible hooks Module 4 will consume.
 
 generator client {
   provider = "prisma-client-js"
@@ -11,152 +16,69 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-enum Role {
-  ADMIN
-  MANAGER
-  STAFF
-}
+/// Seeded, undeletable authorization roles. ids are stable (1..4) and match
+/// the ADMIN/ASSET_MANAGER/DEPT_HEAD/EMPLOYEE constants in common/rbac.
+model RoleMaster {
+  id           Int     @id @default(autoincrement())
+  roleName     String  @unique // Admin, Asset Manager, Department Head, Employee
+  description  String  @default("")
+  isSystemRole Boolean @default(true)
+  users        User[]
 
-enum AssetStatus {
-  AVAILABLE
-  ASSIGNED
-  UNDER_MAINTENANCE
-  RETIRED
-  LOST
-}
-
-enum AssetCondition {
-  NEW
-  GOOD
-  FAIR
-  POOR
-  DAMAGED
-}
-
-enum AssignmentStatus {
-  ACTIVE
-  RETURNED
-  OVERDUE
-}
-
-enum MaintenanceStatus {
-  SCHEDULED
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
+  @@map("roles")
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String
-  fullName     String
-  role         Role     @default(STAFF)
+  id           Int         @id @default(autoincrement())
+  email        String      @unique
+  password     String // bcrypt(10)
+  firstName    String      @default("")
+  lastName     String      @default("")
+  phone        String      @default("")
+  roleId       Int // ONLY authorization field
+  role         RoleMaster  @relation(fields: [roleId], references: [id])
+  departmentId Int?
+  department   Department? @relation("DeptMembers", fields: [departmentId], references: [id], onDelete: SetNull)
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  headedDepartments Department[] @relation("DeptHead")
+
+  @@index([roleId])
+  @@index([departmentId])
+  @@map("users")
+}
+
+model Department {
+  id          Int          @id @default(autoincrement())
+  code        String       @unique // "IT", "HR", "FIN"
+  name        String
+  description String       @default("")
+  parentId    Int?
+  parent      Department?  @relation("DeptHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Department[] @relation("DeptHierarchy")
+  headId      Int?
+  head        User?        @relation("DeptHead", fields: [headId], references: [id], onDelete: SetNull)
+  members     User[]       @relation("DeptMembers")
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([parentId])
+  @@map("departments")
+}
+
+model AssetCategory {
+  id           Int      @id @default(autoincrement())
+  name         String   @unique // Electronics, Furniture, Vehicles...
+  description  String   @default("")
+  tagPrefix    String   @default("AF") // feeds Module 4 asset-tag generation
+  customFields Json     @default("[]") // [{key,label,type,required}] e.g. warrantyPeriod
+  sortOrder    Int      @default(0)
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  assetsCreated Asset[]           @relation("AssetCreatedBy")
-  assignments   AssetAssignment[] @relation("AssignedTo")
-
-  @@map("users")
-}
-
-model Category {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  assets Asset[]
-
-  @@map("categories")
-}
-
-model Vendor {
-  id          String   @id @default(uuid())
-  name        String
-  email       String?
-  phone       String?
-  address     String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  assets Asset[]
-
-  @@map("vendors")
-}
-
-model Asset {
-  id            String          @id @default(uuid())
-  assetTag      String          @unique
-  name          String
-  description   String?
-  serialNumber  String?
-  status        AssetStatus     @default(AVAILABLE)
-  condition     AssetCondition  @default(GOOD)
-  purchaseDate  DateTime?
-  purchaseCost  Decimal?        @db.Decimal(12, 2)
-  warrantyEnd   DateTime?
-  location      String?
-
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
-
-  vendorId String?
-  vendor   Vendor? @relation(fields: [vendorId], references: [id])
-
-  createdById String?
-  createdBy   User?   @relation("AssetCreatedBy", fields: [createdById], references: [id])
-
-  assignments  AssetAssignment[]
-  maintenances MaintenanceRecord[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([status])
-  @@index([categoryId])
-  @@map("assets")
-}
-
-model AssetAssignment {
-  id         String           @id @default(uuid())
-  assetId    String
-  asset      Asset            @relation(fields: [assetId], references: [id])
-  assignedToId String
-  assignedTo   User           @relation("AssignedTo", fields: [assignedToId], references: [id])
-  status     AssignmentStatus @default(ACTIVE)
-  assignedAt DateTime         @default(now())
-  dueAt      DateTime?
-  returnedAt DateTime?
-  notes      String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([assetId])
-  @@index([assignedToId])
-  @@map("asset_assignments")
-}
-
-model MaintenanceRecord {
-  id          String            @id @default(uuid())
-  assetId     String
-  asset       Asset             @relation(fields: [assetId], references: [id])
-  title       String
-  description String?
-  status      MaintenanceStatus @default(SCHEDULED)
-  cost        Decimal?          @db.Decimal(12, 2)
-  scheduledAt DateTime?
-  completedAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([assetId])
-  @@map("maintenance_records")
+  @@map("asset_categories")
 }

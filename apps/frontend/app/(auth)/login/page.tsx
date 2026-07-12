@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,13 +11,12 @@ import { Boxes, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { getErrorMessage } from '@/lib/apiError';
 import { Button } from '@/components/ui/Button';
-import { APP_NAME } from '@/utils/constants';
+import { APP_NAME, APP_TAGLINE, DEMO_ADMIN } from '@/utils/constants';
 
 const schema = z.object({
   email: z.string().min(1, 'Email is required').email('Enter a valid email'),
   password: z.string().min(1, 'Password is required'),
 });
-
 type FormValues = z.infer<typeof schema>;
 
 export default function LoginPage() {
@@ -27,6 +27,7 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -37,10 +38,15 @@ export default function LoginPage() {
     try {
       await login(values);
       toast.success('Welcome back!');
-      router.push('/dashboard');
+      router.replace('/dashboard');
     } catch (err) {
       toast.error(getErrorMessage(err, 'Login failed. Please try again.'));
     }
+  };
+
+  const fillDemo = () => {
+    setValue('email', DEMO_ADMIN.email);
+    setValue('password', DEMO_ADMIN.password);
   };
 
   return (
@@ -50,7 +56,7 @@ export default function LoginPage() {
           <Boxes className="h-7 w-7" />
         </div>
         <h1 className="text-2xl font-bold text-foreground">{APP_NAME}</h1>
-        <p className="mt-1 text-sm text-muted">Sign in to manage your assets</p>
+        <p className="mt-1 text-sm text-muted">{APP_TAGLINE}</p>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
@@ -64,7 +70,7 @@ export default function LoginPage() {
               id="email"
               type="email"
               autoComplete="email"
-              placeholder="admin@asset.com"
+              placeholder="you@assetflow.com"
               className="w-full rounded-lg border border-border bg-background py-2.5 pl-10 pr-3 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30"
               {...register('email')}
             />
@@ -82,7 +88,7 @@ export default function LoginPage() {
               id="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
-              placeholder="Admin@123"
+              placeholder="••••••••"
               className="w-full rounded-lg border border-border bg-background py-2.5 pl-10 pr-10 text-sm text-foreground placeholder:text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30"
               {...register('password')}
             />
@@ -95,20 +101,31 @@ export default function LoginPage() {
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
-          {errors.password && (
-            <p className="mt-1 text-xs text-danger">{errors.password.message}</p>
-          )}
+          {errors.password && <p className="mt-1 text-xs text-danger">{errors.password.message}</p>}
         </div>
 
         <Button type="submit" className="w-full" size="lg" isLoading={isSubmitting}>
-          {isSubmitting ? 'Signing in...' : 'Sign in'}
+          {isSubmitting ? 'Signing in…' : 'Sign in'}
         </Button>
       </form>
 
-      <p className="mt-6 rounded-lg bg-muted-bg px-3 py-2 text-center text-xs text-muted">
-        Demo credentials:{' '}
-        <span className="font-medium text-foreground">admin@asset.com / Admin@123</span>
+      <p className="mt-6 text-center text-sm text-muted">
+        New here?{' '}
+        <Link href="/signup" className="font-medium text-primary hover:underline">
+          Create an account
+        </Link>
       </p>
+
+      <button
+        type="button"
+        onClick={fillDemo}
+        className="mt-4 w-full rounded-lg bg-muted-bg px-3 py-2 text-center text-xs text-muted transition-colors hover:text-foreground"
+      >
+        Demo admin ·{' '}
+        <span className="font-medium text-foreground">{DEMO_ADMIN.email}</span> ·{' '}
+        {DEMO_ADMIN.password}{' '}
+        <span className="text-primary">(click to fill)</span>
+      </button>
     </div>
   );
 }

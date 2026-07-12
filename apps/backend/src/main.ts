@@ -40,8 +40,8 @@ async function bootstrap() {
 
   // Swagger API Documentation
   const config = new DocumentBuilder()
-    .setTitle('Asset Management System API')
-    .setDescription('API documentation for Asset Management System')
+    .setTitle('AssetFlow API')
+    .setDescription('Auth, RBAC & Organization Setup (Module 1 + 3)')
     .setVersion('1.0')
     .addBearerAuth(
       {
@@ -54,10 +54,11 @@ async function bootstrap() {
       },
       'JWT-auth',
     )
-    .addTag('Auth', 'Authentication endpoints')
-    .addTag('Users', 'User management')
-    .addTag('Categories', 'Category management')
-    .addTag('Assets', 'Asset management')
+    .addTag('Auth', 'Login, signup, session')
+    .addTag('Employee Directory', 'Users + live role promotion')
+    .addTag('Departments', 'Org units, hierarchy, heads')
+    .addTag('Asset Categories', 'Categories + custom fields')
+    .addTag('Dashboard', 'KPI stats')
     .addTag('Health', 'Service health')
     .build();
 

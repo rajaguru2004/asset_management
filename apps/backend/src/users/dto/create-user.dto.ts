@@ -1,46 +1,50 @@
 import {
+  IsBoolean,
   IsEmail,
+  IsInt,
+  IsOptional,
   IsString,
   MinLength,
-  IsEnum,
-  IsOptional,
-  IsBoolean,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Role } from '@prisma/client';
 
+/** Admin-only: create a user directly with any role. */
 export class CreateUserDto {
-  @ApiProperty({
-    example: 'user@asset.com',
-    description: 'User email address',
-  })
+  @ApiProperty({ example: 'sam@assetflow.com' })
   @IsEmail()
   email: string;
 
-  @ApiProperty({
-    example: 'Password@123',
-    description: 'User password (minimum 6 characters)',
-    minLength: 6,
-  })
+  @ApiProperty({ example: 'Password@123', minLength: 6 })
   @IsString()
   @MinLength(6)
   password: string;
 
-  @ApiProperty({
-    example: 'John Doe',
-    description: 'Full name of the user',
-  })
+  @ApiProperty({ example: 'Sam' })
   @IsString()
-  fullName: string;
+  @MinLength(1)
+  firstName: string;
 
-  @ApiPropertyOptional({
-    example: 'STAFF',
-    enum: Role,
-    description: 'User role',
-  })
+  @ApiProperty({ example: 'Chen' })
+  @IsString()
+  @MinLength(1)
+  lastName: string;
+
+  @ApiPropertyOptional({ example: '+1 555 0100' })
   @IsOptional()
-  @IsEnum(Role)
-  role?: Role;
+  @IsString()
+  phone?: string;
+
+  @ApiProperty({ example: 4, description: 'RoleMaster id (1=Admin..4=Employee)' })
+  @Type(() => Number)
+  @IsInt()
+  roleId: number;
+
+  @ApiPropertyOptional({ example: 1 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  departmentId?: number;
 
   @ApiPropertyOptional({ example: true, default: true })
   @IsOptional()

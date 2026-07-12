@@ -1,46 +1,34 @@
 import axiosInstance from '@/lib/axios';
-import type { ApiResponse, Paginated } from '@/types/api';
-import type {
-  Category,
-  CreateCategoryDto,
-  UpdateCategoryDto,
-} from '@/types/asset';
+import type { ApiResponse } from '@/types/api';
+import type { Category, CustomField } from '@/types/organization';
 
-export interface CategoryListParams {
-  page?: number;
-  limit?: number;
-  search?: string;
+export interface CategoryPayload {
+  name: string;
+  description?: string;
+  tagPrefix?: string;
+  customFields?: CustomField[];
+  sortOrder?: number;
+  isActive?: boolean;
 }
 
 const categoryService = {
-  async list(params: CategoryListParams = {}): Promise<Paginated<Category>> {
-    const res: ApiResponse<Paginated<Category>> = await axiosInstance.get(
-      '/categories',
-      { params }
-    );
-    return res.data;
+  list(): Promise<ApiResponse<Category[]>> {
+    return axiosInstance.get('/asset-categories');
   },
-
-  async get(id: string): Promise<Category> {
-    const res: ApiResponse<Category> = await axiosInstance.get(`/categories/${id}`);
-    return res.data;
+  get(id: number): Promise<ApiResponse<Category>> {
+    return axiosInstance.get(`/asset-categories/${id}`);
   },
-
-  async create(dto: CreateCategoryDto): Promise<Category> {
-    const res: ApiResponse<Category> = await axiosInstance.post('/categories', dto);
-    return res.data;
+  create(payload: CategoryPayload): Promise<ApiResponse<Category>> {
+    return axiosInstance.post('/asset-categories', payload);
   },
-
-  async update(id: string, dto: UpdateCategoryDto): Promise<Category> {
-    const res: ApiResponse<Category> = await axiosInstance.patch(
-      `/categories/${id}`,
-      dto
-    );
-    return res.data;
+  update(
+    id: number,
+    payload: Partial<CategoryPayload>,
+  ): Promise<ApiResponse<Category>> {
+    return axiosInstance.patch(`/asset-categories/${id}`, payload);
   },
-
-  async remove(id: string): Promise<void> {
-    await axiosInstance.delete(`/categories/${id}`);
+  remove(id: number): Promise<ApiResponse<Category>> {
+    return axiosInstance.delete(`/asset-categories/${id}`);
   },
 };
 

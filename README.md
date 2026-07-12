@@ -1,6 +1,12 @@
-# Asset Management System
+# AssetFlow — Auth, RBAC & Organization Setup (Module 1 + 3)
 
-Monorepo mirroring the HRM stack: **NestJS 11 + Prisma 5** API and **Next.js 16 (App Router) + React 19** frontend. Domain = asset tracking (assets, categories, vendors, assignments, maintenance).
+Monorepo: **NestJS 11 + Prisma 5** API and **Next.js 16 (App Router) + React 19** frontend.
+
+This build covers **Module 1 (Login/Signup)** and **Module 3 (Organization Setup)** from the
+AssetFlow scope: JWT auth with no self-elevation, a static role-permission matrix (Admin / Asset
+Manager / Department Head / Employee), Departments (hierarchy + heads), Asset Categories with
+custom fields, the Employee Directory with **live role promotion (no re-login)**, and a KPI
+dashboard. Module 4+ (assets, bookings, maintenance, audits) is intentionally out of scope.
 
 ```
 asset_management/
@@ -46,11 +52,10 @@ npm install
 npm --prefix apps/backend install
 npm --prefix apps/frontend install
 
-# 2. Database
-docker compose up -d db          # or point apps/backend/.env at your own Postgres
+# 2. Database  (apps/backend/.env already points at the shared Postgres)
 npm --prefix apps/backend run prisma:generate
-npm --prefix apps/backend run prisma:migrate    # creates tables
-npm --prefix apps/backend run prisma:seed       # admin@asset.com / Admin@123 + sample data
+npx --prefix apps/backend prisma db push          # sync schema (no migration files)
+npm --prefix apps/backend run prisma:seed         # roles, admin, depts, categories, employees
 
 # 3. Run both apps
 npm run dev            # BE :3001 + FE :3000 (concurrently)
@@ -81,8 +86,14 @@ PORT=3001
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
-## Default login
+## Default logins
 
 ```
-admin@asset.com / Admin@123
+Admin   admin@assetflow.com   / Admin@123
+Others  *.assetflow.com       / Password@123   (e.g. maya.manager@assetflow.com,
+                                                 raj.head@assetflow.com, sam.emp@assetflow.com)
 ```
+
+**Demo flow:** log in as admin → Dashboard (KPIs) → Organization → Employees → **Assign role** on any
+Employee → they gain access on their next request with no re-login. Departments enforce a hierarchy
+cycle-check and block deactivation while members remain; the last active Admin cannot be demoted.

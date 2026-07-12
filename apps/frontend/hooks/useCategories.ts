@@ -1,51 +1,37 @@
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import categoryService, {
-  type CategoryListParams,
+  type CategoryPayload,
 } from '@/services/categoryService';
-import type { CreateCategoryDto, UpdateCategoryDto } from '@/types/asset';
 
-export function useCategories(params: CategoryListParams = {}) {
+const KEY = ['asset-categories'];
+
+export function useCategories() {
   return useQuery({
-    queryKey: ['categories', params],
-    queryFn: () => categoryService.list(params),
-    placeholderData: keepPreviousData,
+    queryKey: KEY,
+    queryFn: async () => (await categoryService.list()).data,
   });
 }
 
-export function useCategory(id: string) {
-  return useQuery({
-    queryKey: ['categories', id],
-    queryFn: () => categoryService.get(id),
-    enabled: !!id,
-  });
-}
+export function useCategoryMutations() {
+  const qc = useQueryClient();
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: KEY });
+    qc.invalidateQueries({ queryKey: ['dashboard'] });
+  };
 
-export function useCreateCategory() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (dto: CreateCategoryDto) => categoryService.create(dto),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
+  const create = useMutation({
+    mutationFn: (payload: CategoryPayload) => categoryService.create(payload),
+    onSuccess: invalidate,
   });
-}
+  const update = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: Partial<CategoryPayload> }) =>
+      categoryService.update(id, payload),
+    onSuccess: invalidate,
+  });
+  const remove = useMutation({
+    mutationFn: (id: number) => categoryService.remove(id),
+    onSuccess: invalidate,
+  });
 
-export function useUpdateCategory() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, dto }: { id: string; dto: UpdateCategoryDto }) =>
-      categoryService.update(id, dto),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
-  });
-}
-
-export function useDeleteCategory() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => categoryService.remove(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
-  });
+  return { create, update, remove };
 }
