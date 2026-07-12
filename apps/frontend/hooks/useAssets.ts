@@ -9,6 +9,14 @@ export function useAssets(query: AssetQuery = {}) {
   });
 }
 
+/** Minimal dropdown list — works for every authenticated role (no ASSETS permission needed). */
+export function useAssetOptions(isShared?: boolean) {
+  return useQuery({
+    queryKey: ['assets', 'options', isShared ?? null],
+    queryFn: async () => (await assetService.options(isShared)).data,
+  });
+}
+
 export function useAsset(id: number | null) {
   return useQuery({
     queryKey: ['assets', 'detail', id],

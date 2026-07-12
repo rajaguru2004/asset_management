@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Building2, Layers, Users } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { Action, Resource, hasPermission } from '@/lib/permissions';
@@ -9,9 +9,11 @@ import { Tabs, type TabItem } from '@/components/common/Tabs';
 import { DepartmentsPanel } from '@/components/departments/DepartmentsPanel';
 import { CategoriesPanel } from '@/components/categories/CategoriesPanel';
 import { EmployeesPanel } from '@/components/employees/EmployeesPanel';
+import { LoadingRows } from '@/components/common/Spinner';
 
-export default function OrganizationPage() {
+function OrganizationContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const roleId = useAuthStore((s) => s.user?.roleId);
 
   const tabs = useMemo<TabItem[]>(() => {
@@ -25,7 +27,8 @@ export default function OrganizationPage() {
     return t;
   }, [roleId]);
 
-  const [active, setActive] = useState<string>('');
+  // Seed the initial tab from the URL (dashboard drill-through) if permitted.
+  const [active, setActive] = useState<string>(() => searchParams.get('tab') ?? '');
 
   // Pick the first permitted tab; bounce employees with no access to /403.
   useEffect(() => {
@@ -55,5 +58,13 @@ export default function OrganizationPage() {
         {active === 'employees' && <EmployeesPanel />}
       </div>
     </div>
+  );
+}
+
+export default function OrganizationPage() {
+  return (
+    <Suspense fallback={<LoadingRows />}>
+      <OrganizationContent />
+    </Suspense>
   );
 }

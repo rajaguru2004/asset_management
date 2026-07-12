@@ -16,4 +16,11 @@ export class DashboardController {
   stats() {
     return this.dashboard.stats();
   }
+
+  @Get('analytics')
+  @RequirePermission({ resource: Resource.DASHBOARD, action: Action.VIEW })
+  @ApiOperation({ summary: 'Chart payload: assets by status, per-category totals + overdue returns' })
+  analytics() {
+    return this.dashboard.analytics();
+  }
 }

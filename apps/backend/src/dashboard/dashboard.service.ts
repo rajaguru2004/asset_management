@@ -85,4 +85,45 @@ export class DashboardService {
       pendingMaintenance,
     };
   }
+
+  async analytics() {
+    const [byStatus, byCategory, categories, overdueAllocs] = await Promise.all([
+      this.prisma.asset.groupBy({
+        by: ['status'],
+        where: { isActive: true },
+        _count: { _all: true },
+      }),
+      this.prisma.asset.groupBy({
+        by: ['categoryId'],
+        where: { isActive: true },
+        _count: { _all: true },
+      }),
+      this.prisma.assetCategory.findMany({
+        where: { isActive: true },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' },
+      }),
+      // groupBy cannot traverse relations, so category comes via a narrow findMany + reduce
+      this.prisma.assetAllocation.findMany({
+        where: { status: AllocationStatus.ACTIVE, expectedReturnDate: { lt: new Date() } },
+        select: { asset: { select: { categoryId: true } } },
+      }),
+    ]);
+
+    const totalByCat = new Map<number, number>(byCategory.map((g) => [g.categoryId, g._count._all]));
+    const overdueByCat = new Map<number, number>();
+    for (const a of overdueAllocs) {
+      overdueByCat.set(a.asset.categoryId, (overdueByCat.get(a.asset.categoryId) ?? 0) + 1);
+    }
+
+    return {
+      assetsByStatus: byStatus.map((g) => ({ status: g.status, count: g._count._all })),
+      categoryBreakdown: categories.map((c) => ({
+        categoryId: c.id,
+        name: c.name,
+        totalAssets: totalByCat.get(c.id) ?? 0,
+        overdueReturns: overdueByCat.get(c.id) ?? 0,
+      })),
+    };
+  }
 }

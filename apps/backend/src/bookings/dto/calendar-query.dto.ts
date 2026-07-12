@@ -1,12 +1,13 @@
-import { IsDateString, IsInt } from 'class-validator';
+import { IsDateString, IsInt, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CalendarQueryDto {
-  @ApiProperty({ example: 1 })
+  @ApiPropertyOptional({ example: 1, description: 'Omit for all shared assets' })
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
-  assetId: number;
+  assetId?: number;
 
   @ApiProperty({ example: '2026-07-01' })
   @IsDateString()

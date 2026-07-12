@@ -27,6 +27,12 @@ export class QueryAllocationsDto {
   @IsInt()
   departmentId?: number;
 
+  @ApiPropertyOptional({ description: 'Filter by the allocated asset’s category' })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  categoryId?: number;
+
   @ApiPropertyOptional({ description: 'ACTIVE and past expectedReturnDate' })
   @IsOptional()
   @Transform(({ value }) => (value === undefined ? undefined : value === 'true' || value === true))

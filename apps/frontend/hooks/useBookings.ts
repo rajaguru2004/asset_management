@@ -1,10 +1,21 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import bookingService, {
   type BookingQuery,
+  type CalendarQuery,
   type CancelBookingPayload,
   type CreateBookingPayload,
   type RescheduleBookingPayload,
 } from '@/services/bookingService';
+
+export function useBookingCalendar(range: Omit<CalendarQuery, 'assetId'> | null, assetId?: number) {
+  return useQuery({
+    queryKey: ['bookings', 'calendar', range, assetId ?? null],
+    queryFn: async () =>
+      (await bookingService.calendar({ ...(range as CalendarQuery), assetId })).data,
+    enabled: !!range,
+    placeholderData: keepPreviousData,
+  });
+}
 
 export function useBookings(query: BookingQuery = {}) {
   return useQuery({
