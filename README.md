@@ -1,21 +1,23 @@
 <div align="center">
+  <img src="https://img.icons8.com/?size=100&id=119420&format=png&color=000000" alt="AssetFlow Icon" width="80"/>
 
-# 🗂️ AssetFlow
+  # AssetFlow
+  ### Enterprise Asset & Resource Management System
 
-### Enterprise Asset & Resource Management System
+  <p align="center">
+    <em>A centralized ERP platform that replaces spreadsheets and paper logs with structured asset lifecycles, secure role-based workflows, and real-time visibility into who holds what, where it is, and its condition.</em>
+  </p>
 
-A centralized ERP platform that replaces spreadsheets and paper logs with structured asset
-lifecycles, secure role-based workflows, and real-time visibility into who holds what, where
-it is, and its condition — built for any organization with equipment, furniture, vehicles,
-or shared spaces.
+  [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-007EC6?style=for-the-badge)](https://odoo-ruddy-rho.vercel.app/)
 
-[![NestJS](https://img.shields.io/badge/NestJS-11-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com)
-[![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=next.js&logoColor=white)](https://nextjs.org)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
-[![Prisma](https://img.shields.io/badge/Prisma-5-2D3748?logo=prisma&logoColor=white)](https://www.prisma.io)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](#license)
+  <br />
+
+  [![NestJS](https://img.shields.io/badge/NestJS-11-E0234E?style=flat-square&logo=nestjs&logoColor=white)](https://nestjs.com)
+  [![Next.js](https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org)
+  [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
+  [![Prisma](https://img.shields.io/badge/Prisma-5-2D3748?style=flat-square&logo=prisma&logoColor=white)](https://www.prisma.io)
+  [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 
 </div>
 
@@ -314,29 +316,41 @@ asset_management/
 
 ### Steps
 
+**1. Clone the repository**
 ```bash
-# 1. Clone
 git clone https://github.com/rajaguru2004/asset_management.git
 cd asset_management
+```
 
-# 2. Install dependencies
+**2. Install dependencies**
+```bash
 npm install
 npm --prefix apps/backend install
 npm --prefix apps/frontend install
+```
 
-# 3. Start Postgres locally
-docker compose up -d db          # binds host port 5433
+**3. Start Postgres locally**
+```bash
+docker compose up -d db
+```
+*(If you are using a remote database, you can skip this step.)*
 
-# 4. Configure environment
+**4. Configure environment**
+```bash
 cp apps/backend/.env.example apps/backend/.env
 echo "NEXT_PUBLIC_API_URL=http://localhost:3001" > apps/frontend/.env.local
+```
+*(Make sure to update `apps/backend/.env` with your specific database URL if you are not using the local Docker database.)*
 
-# 5. Database: generate client, push schema, seed demo data
+**5. Database setup**
+```bash
 npm --prefix apps/backend run prisma:generate
 npx --prefix apps/backend prisma db push
 npm --prefix apps/backend run prisma:seed
+```
 
-# 6. Run both apps together
+**6. Run both apps together**
+```bash
 npm run dev
 ```
 
