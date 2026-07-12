@@ -26,6 +26,7 @@ export interface AllocationQuery {
   assetId?: number;
   userId?: number;
   departmentId?: number;
+  categoryId?: number;
   overdue?: boolean;
   page?: number;
   limit?: number;

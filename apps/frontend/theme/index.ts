@@ -31,4 +31,25 @@ export const STATUS_COLORS: Record<string, string> = {
   UNDER_MAINTENANCE: '#f59e0b',
   RETIRED: '#64748b',
   LOST: '#ef4444',
+  ALLOCATED: '#6366f1',
+  RESERVED: '#0ea5e9',
+  DISPOSED: '#94a3b8',
 };
+
+/** Shared recharts Tooltip contentStyle that follows the light/dark tokens. */
+export const CHART_TOOLTIP_STYLE = {
+  backgroundColor: 'var(--card)',
+  border: '1px solid var(--border)',
+  borderRadius: '0.5rem',
+  color: 'var(--foreground)',
+  fontSize: '0.8rem',
+} as const;
+
+/**
+ * contentStyle only themes the tooltip box; recharts inlines item text color
+ * as `entry.color || '#000'` (black when fills live on <Cell>, e.g. pie /
+ * waterfall) and the label has its own default. Pass these alongside
+ * CHART_TOOLTIP_STYLE so the text follows the theme too.
+ */
+export const CHART_TOOLTIP_LABEL_STYLE = { color: 'var(--foreground)' } as const;
+export const CHART_TOOLTIP_ITEM_STYLE = { color: 'var(--foreground)' } as const;

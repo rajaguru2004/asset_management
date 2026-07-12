@@ -6,7 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
-import { useAssets } from '@/hooks/useAssets';
+import { useAssetOptions } from '@/hooks/useAssets';
 import { useBookingMutations } from '@/hooks/useBookings';
 import { AvailabilityPreview } from './AvailabilityPreview';
 import { getErrorMessage } from '@/lib/apiError';
@@ -17,8 +17,23 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function BookingForm({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { data: assetsData } = useAssets({ isShared: true, limit: 100 });
+export interface BookingFormInitial {
+  assetId?: number;
+  date?: string;
+  startTime?: string;
+  endTime?: string;
+}
+
+export function BookingForm({
+  open,
+  onClose,
+  initial,
+}: {
+  open: boolean;
+  onClose: () => void;
+  initial?: BookingFormInitial;
+}) {
+  const { data: assetOpts } = useAssetOptions(true);
   const { create } = useBookingMutations();
 
   const [assetId, setAssetId] = useState<number | ''>('');
@@ -30,15 +45,15 @@ export function BookingForm({ open, onClose }: { open: boolean; onClose: () => v
 
   useEffect(() => {
     if (!open) return;
-    setAssetId('');
-    setDate(todayISO());
-    setStartTime('09:00');
-    setEndTime('10:00');
+    setAssetId(initial?.assetId ?? '');
+    setDate(initial?.date ?? todayISO());
+    setStartTime(initial?.startTime ?? '09:00');
+    setEndTime(initial?.endTime ?? '10:00');
     setPurpose('');
     setClash(null);
-  }, [open]);
+  }, [open, initial]);
 
-  const assetOptions = (assetsData?.items ?? []).map((a) => ({ value: a.id, label: a.name }));
+  const assetOptions = (assetOpts ?? []).map((a) => ({ value: a.id, label: a.name }));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();

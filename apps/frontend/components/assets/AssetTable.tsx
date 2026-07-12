@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { ArrowLeftRight, Boxes, ChevronLeft, ChevronRight, Pencil, Plus, Power, Search } from 'lucide-react';
 import { useAssets, useAssetMutations } from '@/hooks/useAssets';
@@ -44,9 +45,13 @@ const STATUS_OPTIONS: { value: AssetStatus | ''; label: string }[] = [
 ];
 
 export function AssetTable() {
+  // Seed filters from the URL so dashboard drill-throughs land pre-filtered.
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState<AssetStatus | ''>('');
+  const [categoryFilter, setCategoryFilter] = useState(() => searchParams.get('categoryId') ?? '');
+  const [statusFilter, setStatusFilter] = useState<AssetStatus | ''>(
+    () => (searchParams.get('status') as AssetStatus) ?? '',
+  );
   const [page, setPage] = useState(1);
 
   const debouncedSearch = useDebounce(search, 300);

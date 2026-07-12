@@ -32,9 +32,14 @@ async function bootstrap() {
   // Global filters
   app.useGlobalFilters(new AllExceptionsFilter());
 
-  // CORS (accept all origins dynamically to avoid CORS issues)
+  // CORS (supports comma-separated list of origins)
+  const corsOrigin = process.env.CORS_ORIGIN;
+  const origins = corsOrigin
+    ? corsOrigin.split(',').map((o) => o.trim())
+    : true;
+
   app.enableCors({
-    origin: true,
+    origin: origins,
     credentials: true,
   });
 

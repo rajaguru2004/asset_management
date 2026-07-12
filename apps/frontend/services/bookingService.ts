@@ -25,9 +25,18 @@ export interface BookingQuery {
   limit?: number;
 }
 
+export interface CalendarQuery {
+  assetId?: number;
+  from: string;
+  to: string;
+}
+
 const bookingService = {
   list(query: BookingQuery = {}): Promise<ApiResponse<Paginated<Booking>>> {
     return axiosInstance.get('/bookings', { params: query });
+  },
+  calendar(query: CalendarQuery): Promise<ApiResponse<Record<string, Booking[]>>> {
+    return axiosInstance.get('/bookings/calendar', { params: query });
   },
   availability(assetId: number, date: string): Promise<ApiResponse<AvailabilityResponse>> {
     return axiosInstance.get('/bookings/availability', { params: { assetId, date } });

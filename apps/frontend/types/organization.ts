@@ -76,3 +76,14 @@ export interface DashboardStats {
   maintenanceToday: number;
   pendingMaintenance: number;
 }
+
+export interface DashboardAnalytics {
+  /** Only statuses that actually have assets are present. */
+  assetsByStatus: { status: string; count: number }[];
+  categoryBreakdown: {
+    categoryId: number;
+    name: string;
+    totalAssets: number;
+    overdueReturns: number;
+  }[];
+}
