@@ -17,5 +17,26 @@ services:
       timeout: 5s
       retries: 5
 
+  backend:
+    image: ghcr.io/rajaguru2004/asset-management-backend:latest
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: asset_mgmt_backend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/asset_management?connection_limit=1&pool_timeout=30
+      - DIRECT_URL=postgresql://postgres:postgres@db:5432/asset_management?connection_limit=1&pool_timeout=30
+      - JWT_SECRET=change-this-super-secret-jwt-key-in-production
+      - JWT_EXPIRES_IN=7d
+      - NODE_ENV=production
+      - CORS_ORIGIN=http://localhost:3000,http://localhost:3002,https://odoo-ruddy-rho.vercel.app
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   asset_pgdata:
