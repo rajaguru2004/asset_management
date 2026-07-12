@@ -652,10 +652,3 @@ Built with [NestJS](https://nestjs.com), [Prisma](https://www.prisma.io),
 [Next.js](https://nextjs.org), [React](https://react.dev), and
 [Tailwind CSS](https://tailwindcss.com).
 
----
-
-<div align="center">
-
-Made for the AssetFlow hackathon build · Roadmap and build plans in [`docs/`](docs/) and [`CLAUDE.md`](CLAUDE.md)
-
-</div>
