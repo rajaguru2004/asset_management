@@ -11,7 +11,7 @@ import { Boxes, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { getErrorMessage } from '@/lib/apiError';
 import { Button } from '@/components/ui/Button';
-import { APP_NAME, APP_TAGLINE, DEMO_ADMIN } from '@/utils/constants';
+import { APP_NAME, APP_TAGLINE, DEMO_ACCOUNTS } from '@/utils/constants';
 
 const schema = z.object({
   email: z.string().min(1, 'Email is required').email('Enter a valid email'),
@@ -44,9 +44,9 @@ export default function LoginPage() {
     }
   };
 
-  const fillDemo = () => {
-    setValue('email', DEMO_ADMIN.email);
-    setValue('password', DEMO_ADMIN.password);
+  const fillDemo = (email: string, password: string) => {
+    setValue('email', email);
+    setValue('password', password);
   };
 
   return (
@@ -116,16 +116,22 @@ export default function LoginPage() {
         </Link>
       </p>
 
-      <button
-        type="button"
-        onClick={fillDemo}
-        className="mt-4 w-full rounded-lg bg-muted-bg px-3 py-2 text-center text-xs text-muted transition-colors hover:text-foreground"
-      >
-        Demo admin ·{' '}
-        <span className="font-medium text-foreground">{DEMO_ADMIN.email}</span> ·{' '}
-        {DEMO_ADMIN.password}{' '}
-        <span className="text-primary">(click to fill)</span>
-      </button>
+      <div className="mt-4">
+        <p className="mb-2 text-center text-xs text-muted">Demo accounts (click to fill)</p>
+        <div className="grid grid-cols-2 gap-2">
+          {DEMO_ACCOUNTS.map((acc) => (
+            <button
+              key={acc.email}
+              type="button"
+              onClick={() => fillDemo(acc.email, acc.password)}
+              className="rounded-lg bg-muted-bg px-3 py-2 text-center text-xs text-muted transition-colors hover:bg-primary/10 hover:text-primary"
+              title={`${acc.email} · ${acc.password}`}
+            >
+              {acc.role}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
