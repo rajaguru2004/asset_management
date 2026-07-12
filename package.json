@@ -1,0 +1,22 @@
+{
+  "name": "asset-management-monorepo",
+  "version": "1.0.0",
+  "author": "rajaguru2004",
+  "private": true,
+  "scripts": {
+    "dev:backend": "npm run dev --prefix apps/backend",
+    "dev:frontend": "npm run dev --prefix apps/frontend",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" --names \"BE,FE\" --prefix-colors \"blue,green\"",
+    "build:backend": "npm run build --prefix apps/backend",
+    "build:frontend": "npm run build --prefix apps/frontend",
+    "build": "npm run build:backend && npm run build:frontend",
+    "start:backend": "npm run start:prod --prefix apps/backend",
+    "start:frontend": "npm run start --prefix apps/frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "axios": "^1.13.6"
+  }
+}
