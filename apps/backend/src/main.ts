@@ -58,8 +58,13 @@ async function bootstrap() {
     .addTag('Employee Directory', 'Users + live role promotion')
     .addTag('Departments', 'Org units, hierarchy, heads')
     .addTag('Asset Categories', 'Categories + custom fields')
+    .addTag('Assets', 'Registry: tag generation, custom fields, lifecycle')
+    .addTag('Allocations', 'Custody, transfers, overdue tracking')
+    .addTag('Bookings', 'Resource time-sharing, availability, calendar')
+    .addTag('Maintenance', 'Repair workflow: approve, assign, start, resolve')
     .addTag('Dashboard', 'KPI stats')
     .addTag('Health', 'Service health')
+    .addTag('Libraries', 'Generic vocabularies (location, fuel type, ...)')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

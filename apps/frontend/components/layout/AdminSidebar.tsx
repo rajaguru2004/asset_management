@@ -2,7 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Boxes, Building2, LayoutDashboard, X, type LucideIcon } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  Boxes,
+  Building2,
+  CalendarClock,
+  Library,
+  LayoutDashboard,
+  Package,
+  Wrench,
+  X,
+  type LucideIcon,
+} from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { Action, Resource, hasPermission, roleName } from '@/lib/permissions';
 import { APP_NAME } from '@/utils/constants';
@@ -24,6 +35,11 @@ const NAV: NavItem[] = [
     icon: Building2,
     resources: [Resource.DEPARTMENTS, Resource.ASSET_CATEGORIES, Resource.EMPLOYEE_DIRECTORY],
   },
+  { label: 'Assets', href: '/assets', icon: Package, resources: [Resource.ASSETS] },
+  { label: 'Allocations', href: '/allocations', icon: ArrowLeftRight, resources: [Resource.ALLOCATIONS] },
+  { label: 'Bookings', href: '/bookings', icon: CalendarClock, resources: [Resource.BOOKINGS] },
+  { label: 'Maintenance', href: '/maintenance', icon: Wrench, resources: [Resource.MAINTENANCE] },
+  { label: 'Library', href: '/library', icon: Library, resources: [Resource.LIBRARIES] },
 ];
 
 export function AdminSidebar({

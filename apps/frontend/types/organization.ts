@@ -37,13 +37,15 @@ export interface DepartmentDetail extends Department {
   members: DepartmentMember[];
 }
 
-export type CustomFieldType = 'text' | 'number' | 'date' | 'boolean';
+export type CustomFieldType = 'text' | 'number' | 'date' | 'boolean' | 'select';
 
 export interface CustomField {
   key: string;
   label: string;
   type: CustomFieldType;
   required?: boolean;
+  /** Module 4-7 library.config.ts libName this SELECT field draws options from */
+  libraryName?: string;
 }
 
 export interface Category {
@@ -64,4 +66,13 @@ export interface DashboardStats {
   activeCategories: number;
   employeesByRole: Record<string, number>;
   recentlyAdded: User[];
+  // --- Module 4-7 KPIs ---
+  availableAssets: number;
+  allocatedAssets: number;
+  overdueReturns: number;
+  pendingTransfers: number;
+  activeBookings: number;
+  bookingsToday: number;
+  maintenanceToday: number;
+  pendingMaintenance: number;
 }

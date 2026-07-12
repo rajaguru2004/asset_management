@@ -16,26 +16,49 @@ import {
 } from './permissions.enum';
 
 // roleId → resource → allowed actions
+const ALL: A[] = [A.VIEW, A.CREATE, A.UPDATE, A.DELETE];
+
 export const ROLE_PERMISSIONS: Record<number, Partial<Record<R, A[]>>> = {
   [ADMIN]: {
     [R.DEPARTMENTS]: [A.VIEW, A.CREATE, A.UPDATE, A.DELETE],
     [R.ASSET_CATEGORIES]: [A.VIEW, A.CREATE, A.UPDATE, A.DELETE],
     [R.EMPLOYEE_DIRECTORY]: [A.VIEW, A.CREATE, A.UPDATE, A.DELETE],
     [R.DASHBOARD]: [A.VIEW],
+    // --- Module 4-7 ---
+    [R.ASSETS]: ALL,
+    [R.ALLOCATIONS]: ALL,
+    [R.LIBRARIES]: ALL,
+    [R.BOOKINGS]: ALL,
+    [R.MAINTENANCE]: ALL,
   },
   [ASSET_MANAGER]: {
     [R.DEPARTMENTS]: [A.VIEW],
     [R.ASSET_CATEGORIES]: [A.VIEW, A.CREATE, A.UPDATE, A.DELETE],
     [R.EMPLOYEE_DIRECTORY]: [A.VIEW],
     [R.DASHBOARD]: [A.VIEW],
+    // --- Module 4-7 ---
+    [R.ASSETS]: ALL,
+    [R.ALLOCATIONS]: ALL,
+    [R.LIBRARIES]: [A.VIEW, A.CREATE],
+    [R.BOOKINGS]: ALL, // manage/cancel any booking
+    [R.MAINTENANCE]: ALL, // approve/assign/start/resolve = UPDATE
   },
   [DEPT_HEAD]: {
     [R.DEPARTMENTS]: [A.VIEW],
     [R.EMPLOYEE_DIRECTORY]: [A.VIEW],
     [R.DASHBOARD]: [A.VIEW],
+    // --- Module 4-7 ---
+    [R.ASSETS]: [A.VIEW],
+    [R.ALLOCATIONS]: [A.VIEW, A.UPDATE], // approve transfers // TODO dept-scope
+    [R.LIBRARIES]: [A.VIEW],
+    [R.BOOKINGS]: [A.VIEW, A.CREATE, A.UPDATE], // book for the department, cancel own
+    [R.MAINTENANCE]: [A.VIEW],
   },
   [EMPLOYEE]: {
     [R.DASHBOARD]: [A.VIEW],
+    // --- Module 4-7 ---
+    [R.BOOKINGS]: [A.VIEW, A.CREATE, A.UPDATE], // book/cancel/reschedule own (row-scoped in service)
+    [R.MAINTENANCE]: [A.VIEW, A.CREATE], // raise + track own (row-scoped)
   },
 };
 

@@ -8,7 +8,18 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts';
-import { Building2, Layers, ShieldCheck, Users } from 'lucide-react';
+import {
+  ArrowLeftRight,
+  Boxes,
+  Building2,
+  CalendarClock,
+  CalendarDays,
+  Clock3,
+  Layers,
+  ShieldCheck,
+  Users,
+  Wrench,
+} from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { useDashboard } from '@/hooks/useDashboard';
 import { StatCard } from '@/components/common/StatCard';
@@ -55,6 +66,24 @@ export default function DashboardPage() {
               value={data.employeesByRole['Department Head'] ?? 0}
               accent="warning"
             />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <StatCard icon={Boxes} label="Available Assets" value={data.availableAssets} accent="success" />
+            <StatCard icon={ArrowLeftRight} label="Allocated Assets" value={data.allocatedAssets} accent="info" />
+            <StatCard
+              icon={Clock3}
+              label="Overdue Returns"
+              value={data.overdueReturns}
+              accent="warning"
+              hint={data.pendingTransfers > 0 ? `${data.pendingTransfers} pending transfer(s)` : undefined}
+            />
+            <StatCard icon={Wrench} label="Maintenance Today" value={data.maintenanceToday} accent="warning" hint={`${data.pendingMaintenance} pending approval`} />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <StatCard icon={CalendarClock} label="Active Bookings" value={data.activeBookings} accent="primary" />
+            <StatCard icon={CalendarDays} label="Bookings Today" value={data.bookingsToday} accent="info" />
           </div>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">

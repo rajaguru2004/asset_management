@@ -7,6 +7,12 @@ export enum Resource {
   ASSET_CATEGORIES = 'ASSET_CATEGORIES',
   EMPLOYEE_DIRECTORY = 'EMPLOYEE_DIRECTORY',
   DASHBOARD = 'DASHBOARD',
+  // --- Module 4-7 (Assets/Allocation/Booking/Maintenance) ---
+  ASSETS = 'ASSETS',
+  ALLOCATIONS = 'ALLOCATIONS',
+  LIBRARIES = 'LIBRARIES',
+  BOOKINGS = 'BOOKINGS',
+  MAINTENANCE = 'MAINTENANCE',
 }
 
 export enum Action {

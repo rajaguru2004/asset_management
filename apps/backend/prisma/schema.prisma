@@ -2,9 +2,8 @@
 // Postgres. Int surrogate keys; roleId is the ONLY authorization field.
 // Permission matrix lives in code (common/rbac), not in the DB.
 //
-// Module 4+ models (Asset, Booking, Maintenance, Audit) are intentionally
-// NOT here yet — this build covers Org Setup only. AssetCategory.customFields
-// + tagPrefix are forward-compatible hooks Module 4 will consume.
+// Module 4-7 models (Asset, Allocation, Booking, Maintenance) appended below.
+// Module 8+ (Audit, Reports, Notifications) still NOT here.
 
 generator client {
   provider = "prisma-client-js"
@@ -45,6 +44,14 @@ model User {
 
   headedDepartments Department[] @relation("DeptHead")
 
+  // --- Module 4-7 (Assets/Allocation/Booking/Maintenance) back-relations ---
+  allocationsHeld       AssetAllocation[]     @relation("Holder")
+  allocationsGranted    AssetAllocation[]     @relation("Allocator")
+  bookings              Booking[]             @relation("UserBookings")
+  maintenanceRequested  MaintenanceRequest[]  @relation("MaintRequester")
+  maintenanceApproved   MaintenanceRequest[]  @relation("MaintApprover")
+  maintenanceAssigned   MaintenanceRequest[]  @relation("MaintTechnician")
+
   @@index([roleId])
   @@index([departmentId])
   @@map("users")
@@ -65,6 +72,9 @@ model Department {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
 
+  // --- Module 5 (Allocation) back-relations ---
+  deptAllocations AssetAllocation[] @relation("DeptAllocations")
+
   @@index([parentId])
   @@map("departments")
 }
@@ -80,5 +90,179 @@ model AssetCategory {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // --- Module 4 (Assets) back-relation ---
+  assets Asset[]
+
   @@map("asset_categories")
+}
+
+// ===================== Module 4-7: Assets, Allocation, Booking, Maintenance =====================
+
+enum AssetStatus {
+  AVAILABLE
+  ALLOCATED
+  RESERVED
+  UNDER_MAINTENANCE
+  LOST
+  RETIRED
+  DISPOSED
+}
+
+enum AssetCondition {
+  GOOD
+  FAIR
+  DAMAGED
+  UNDER_REPAIR
+}
+
+enum AllocationStatus {
+  ACTIVE
+  RETURNED
+  TRANSFER_PENDING
+}
+
+enum BookingStatus {
+  CONFIRMED
+  REJECTED
+  CANCELLED
+  COMPLETED
+}
+
+enum MaintenancePriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum MaintenanceRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  TECHNICIAN_ASSIGNED
+  IN_PROGRESS
+  RESOLVED
+  CANCELLED
+}
+
+model Asset {
+  id              Int            @id @default(autoincrement())
+  assetTag        String         @unique // server-generated ONLY
+  name            String
+  categoryId      Int
+  category        AssetCategory  @relation(fields: [categoryId], references: [id])
+  serialNumber    String?        @unique
+  condition       AssetCondition @default(GOOD)
+  location        String         @default("") // "location" library dataId
+  status          AssetStatus    @default(AVAILABLE)
+  isShared        Boolean        @default(false) // true -> bookable (M6), not allocatable (M5)
+  acquisitionDate DateTime?
+  acquisitionCost Decimal?       @db.Decimal(12, 2) // reports/ranking only
+  photoUrl        String? // TODO: upload wiring
+  customValues    Json           @default("{}")
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  allocations AssetAllocation[]
+  bookings    Booking[]
+  maintenance MaintenanceRequest[]
+
+  @@index([categoryId])
+  @@index([status])
+  @@map("assets")
+}
+
+model AssetTagSequence {
+  id         Int @id @default(autoincrement())
+  categoryId Int @unique
+  lastNumber Int @default(0)
+
+  @@map("asset_tag_sequences")
+}
+
+model AssetAllocation {
+  id                 Int              @id @default(autoincrement())
+  assetId            Int
+  asset              Asset            @relation(fields: [assetId], references: [id])
+  userId             Int? // exactly one of userId/departmentId (service-validated)
+  user               User?            @relation("Holder", fields: [userId], references: [id])
+  departmentId       Int?
+  department         Department?      @relation("DeptAllocations", fields: [departmentId], references: [id])
+  allocatedById      Int
+  allocatedBy        User             @relation("Allocator", fields: [allocatedById], references: [id])
+  status             AllocationStatus @default(ACTIVE)
+  allocatedAt        DateTime         @default(now())
+  expectedReturnDate DateTime?
+  returnedAt         DateTime?
+  returnCondition    AssetCondition?
+  notes              String           @default("")
+
+  @@index([assetId])
+  @@index([userId])
+  @@index([status, expectedReturnDate])
+  @@map("asset_allocations")
+}
+
+model Booking {
+  id           Int           @id @default(autoincrement())
+  assetId      Int
+  asset        Asset         @relation(fields: [assetId], references: [id])
+  bookedById   Int
+  bookedBy     User          @relation("UserBookings", fields: [bookedById], references: [id])
+  purpose      String
+  startTime    DateTime
+  endTime      DateTime
+  status       BookingStatus @default(CONFIRMED)
+  cancelReason String        @default("")
+  remindedAt   DateTime? // idempotent reminder cron
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([assetId, startTime, endTime])
+  @@index([bookedById])
+  @@map("bookings")
+}
+
+model MaintenanceRequest {
+  id              Int                      @id @default(autoincrement())
+  assetId         Int
+  asset           Asset                    @relation(fields: [assetId], references: [id])
+  requestedById   Int
+  requestedBy     User                     @relation("MaintRequester", fields: [requestedById], references: [id])
+  issue           String // "Screen broken"
+  description     String                   @default("")
+  priority        MaintenancePriority      @default(MEDIUM)
+  status          MaintenanceRequestStatus @default(PENDING)
+  approvedById    Int?
+  approvedBy      User?                    @relation("MaintApprover", fields: [approvedById], references: [id])
+  technicianId    Int? // any active User - no 5th role
+  technician      User?                    @relation("MaintTechnician", fields: [technicianId], references: [id])
+  rejectReason    String                   @default("")
+  resolutionNotes String                   @default("")
+  cost            Decimal?                 @db.Decimal(12, 2)
+  prevAssetStatus String? // restored on RESOLVED
+  approvedAt      DateTime?
+  assignedAt      DateTime?
+  startedAt       DateTime?
+  resolvedAt      DateTime?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+
+  @@index([assetId, status])
+  @@index([technicianId])
+  @@map("maintenance_requests")
+}
+
+model LibraryItem {
+  id        Int      @id @default(autoincrement())
+  libName   String
+  dataId    String
+  data      Json
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([libName, dataId])
+  @@index([libName, isActive])
+  @@map("library_items")
 }

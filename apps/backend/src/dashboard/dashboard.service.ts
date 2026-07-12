@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { AllocationStatus, AssetStatus, BookingStatus, MaintenanceRequestStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { USER_SAFE_SELECT } from '../common/selects/user.select';
 
@@ -7,6 +8,11 @@ export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
   async stats() {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
     const [
       totalEmployees,
       totalDepartments,
@@ -14,6 +20,15 @@ export class DashboardService {
       roles,
       grouped,
       recentlyAdded,
+      // --- Module 4-7 KPIs ---
+      availableAssets,
+      allocatedAssets,
+      overdueReturns,
+      pendingTransfers,
+      activeBookings,
+      bookingsToday,
+      maintenanceToday,
+      pendingMaintenance,
     ] = await Promise.all([
       this.prisma.user.count({ where: { isActive: true } }),
       this.prisma.department.count({ where: { isActive: true } }),
@@ -32,6 +47,18 @@ export class DashboardService {
         orderBy: { createdAt: 'desc' },
         select: USER_SAFE_SELECT,
       }),
+      this.prisma.asset.count({ where: { status: AssetStatus.AVAILABLE, isActive: true } }),
+      this.prisma.asset.count({ where: { status: AssetStatus.ALLOCATED, isActive: true } }),
+      this.prisma.assetAllocation.count({
+        where: { status: AllocationStatus.ACTIVE, expectedReturnDate: { lt: new Date() } },
+      }),
+      this.prisma.assetAllocation.count({ where: { status: AllocationStatus.TRANSFER_PENDING } }),
+      this.prisma.booking.count({ where: { status: BookingStatus.CONFIRMED } }),
+      this.prisma.booking.count({
+        where: { status: BookingStatus.CONFIRMED, startTime: { gte: todayStart, lte: todayEnd } },
+      }),
+      this.prisma.asset.count({ where: { status: AssetStatus.UNDER_MAINTENANCE, isActive: true } }),
+      this.prisma.maintenanceRequest.count({ where: { status: MaintenanceRequestStatus.PENDING } }),
     ]);
 
     const countByRoleId = new Map<number, number>(
@@ -48,6 +75,14 @@ export class DashboardService {
       activeCategories,
       employeesByRole,
       recentlyAdded,
+      availableAssets,
+      allocatedAssets,
+      overdueReturns,
+      pendingTransfers,
+      activeBookings,
+      bookingsToday,
+      maintenanceToday,
+      pendingMaintenance,
     };
   }
 }

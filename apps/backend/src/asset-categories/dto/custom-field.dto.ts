@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsOptional, IsString, Matches } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString, Matches, ValidateIf } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum CustomFieldType {
@@ -6,6 +6,7 @@ export enum CustomFieldType {
   NUMBER = 'number',
   DATE = 'date',
   BOOLEAN = 'boolean',
+  SELECT = 'select',
 }
 
 /**
@@ -32,4 +33,12 @@ export class CustomFieldDto {
   @IsOptional()
   @IsBoolean()
   required?: boolean;
+
+  @ApiPropertyOptional({
+    example: 'location',
+    description: 'Module 4-7 library.config.ts libName this SELECT field draws options from',
+  })
+  @ValidateIf((f: CustomFieldDto) => f.type === CustomFieldType.SELECT)
+  @IsString()
+  libraryName?: string;
 }

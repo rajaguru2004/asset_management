@@ -12,6 +12,12 @@ export enum Resource {
   ASSET_CATEGORIES = 'ASSET_CATEGORIES',
   EMPLOYEE_DIRECTORY = 'EMPLOYEE_DIRECTORY',
   DASHBOARD = 'DASHBOARD',
+  // --- Module 4-7 (Assets/Allocation/Booking/Maintenance) ---
+  ASSETS = 'ASSETS',
+  ALLOCATIONS = 'ALLOCATIONS',
+  LIBRARIES = 'LIBRARIES',
+  BOOKINGS = 'BOOKINGS',
+  MAINTENANCE = 'MAINTENANCE',
 }
 
 export enum Action {
@@ -43,26 +49,49 @@ export const ASSIGNABLE_ROLES: { value: number; label: string; hint: string }[] 
   { value: ROLE.ADMIN, label: 'Admin', hint: 'Full organization setup + analytics.' },
 ];
 
+const ALL: Action[] = [Action.VIEW, Action.CREATE, Action.UPDATE, Action.DELETE];
+
 const ROLE_PERMISSIONS: Record<number, Partial<Record<Resource, Action[]>>> = {
   [ROLE.ADMIN]: {
     [Resource.DEPARTMENTS]: [Action.VIEW, Action.CREATE, Action.UPDATE, Action.DELETE],
     [Resource.ASSET_CATEGORIES]: [Action.VIEW, Action.CREATE, Action.UPDATE, Action.DELETE],
     [Resource.EMPLOYEE_DIRECTORY]: [Action.VIEW, Action.CREATE, Action.UPDATE, Action.DELETE],
     [Resource.DASHBOARD]: [Action.VIEW],
+    // --- Module 4-7 ---
+    [Resource.ASSETS]: ALL,
+    [Resource.ALLOCATIONS]: ALL,
+    [Resource.LIBRARIES]: ALL,
+    [Resource.BOOKINGS]: ALL,
+    [Resource.MAINTENANCE]: ALL,
   },
   [ROLE.ASSET_MANAGER]: {
     [Resource.DEPARTMENTS]: [Action.VIEW],
     [Resource.ASSET_CATEGORIES]: [Action.VIEW, Action.CREATE, Action.UPDATE, Action.DELETE],
     [Resource.EMPLOYEE_DIRECTORY]: [Action.VIEW],
     [Resource.DASHBOARD]: [Action.VIEW],
+    // --- Module 4-7 ---
+    [Resource.ASSETS]: ALL,
+    [Resource.ALLOCATIONS]: ALL,
+    [Resource.LIBRARIES]: [Action.VIEW, Action.CREATE],
+    [Resource.BOOKINGS]: ALL,
+    [Resource.MAINTENANCE]: ALL,
   },
   [ROLE.DEPT_HEAD]: {
     [Resource.DEPARTMENTS]: [Action.VIEW],
     [Resource.EMPLOYEE_DIRECTORY]: [Action.VIEW],
     [Resource.DASHBOARD]: [Action.VIEW],
+    // --- Module 4-7 ---
+    [Resource.ASSETS]: [Action.VIEW],
+    [Resource.ALLOCATIONS]: [Action.VIEW, Action.UPDATE],
+    [Resource.LIBRARIES]: [Action.VIEW],
+    [Resource.BOOKINGS]: [Action.VIEW, Action.CREATE, Action.UPDATE],
+    [Resource.MAINTENANCE]: [Action.VIEW],
   },
   [ROLE.EMPLOYEE]: {
     [Resource.DASHBOARD]: [Action.VIEW],
+    // --- Module 4-7 ---
+    [Resource.BOOKINGS]: [Action.VIEW, Action.CREATE, Action.UPDATE],
+    [Resource.MAINTENANCE]: [Action.VIEW, Action.CREATE],
   },
 };
 

@@ -31,6 +31,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "ts-node prisma/seed.ts",
+    "db:indexes": "ts-node prisma/apply-indexes.ts",
     "prisma:seed:sample": "ts-node --transpile-only prisma/seed-sample.ts",
     "db:check": "ts-node db-comprehensive-check.ts",
     "seed:knowledge": "ts-node scripts/seed-project-knowledge.ts"
@@ -42,6 +43,7 @@
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/event-emitter": "^3.1.0",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.13",

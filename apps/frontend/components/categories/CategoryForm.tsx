@@ -22,6 +22,7 @@ const TYPE_OPTIONS = [
   { value: 'number', label: 'Number' },
   { value: 'date', label: 'Date' },
   { value: 'boolean', label: 'Yes / No' },
+  { value: 'select', label: 'Select (library)' },
 ];
 
 export function CategoryForm({ open, onClose, editing }: Props) {
@@ -139,46 +140,56 @@ export function CategoryForm({ open, onClose, editing }: Props) {
           ) : (
             <div className="space-y-2">
               {fields.map((f, i) => (
-                <div key={i} className="grid grid-cols-12 items-center gap-2">
-                  <input
-                    placeholder="key"
-                    value={f.key}
-                    onChange={(e) => patchField(i, { key: e.target.value })}
-                    className="col-span-3 rounded-lg border border-border bg-card px-2.5 py-2 font-mono text-xs text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30"
-                  />
-                  <input
-                    placeholder="Label"
-                    value={f.label}
-                    onChange={(e) => patchField(i, { label: e.target.value })}
-                    className="col-span-4 rounded-lg border border-border bg-card px-2.5 py-2 text-xs text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30"
-                  />
-                  <select
-                    value={f.type}
-                    onChange={(e) => patchField(i, { type: e.target.value as CustomFieldType })}
-                    className="col-span-3 rounded-lg border border-border bg-card px-2 py-2 text-xs text-foreground focus:border-primary focus:outline-none"
-                  >
-                    {TYPE_OPTIONS.map((t) => (
-                      <option key={t.value} value={t.value}>
-                        {t.label}
-                      </option>
-                    ))}
-                  </select>
-                  <label className="col-span-1 flex items-center justify-center" title="Required">
+                <div key={i} className="space-y-1.5">
+                  <div className="grid grid-cols-12 items-center gap-2">
                     <input
-                      type="checkbox"
-                      checked={!!f.required}
-                      onChange={(e) => patchField(i, { required: e.target.checked })}
-                      className="h-4 w-4 rounded border-border accent-[var(--primary)]"
+                      placeholder="key"
+                      value={f.key}
+                      onChange={(e) => patchField(i, { key: e.target.value })}
+                      className="col-span-3 rounded-lg border border-border bg-card px-2.5 py-2 font-mono text-xs text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30"
                     />
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => removeField(i)}
-                    className="col-span-1 flex justify-center rounded-lg p-2 text-muted hover:bg-danger/10 hover:text-danger"
-                    aria-label="Remove field"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                    <input
+                      placeholder="Label"
+                      value={f.label}
+                      onChange={(e) => patchField(i, { label: e.target.value })}
+                      className="col-span-4 rounded-lg border border-border bg-card px-2.5 py-2 text-xs text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30"
+                    />
+                    <select
+                      value={f.type}
+                      onChange={(e) => patchField(i, { type: e.target.value as CustomFieldType })}
+                      className="col-span-3 rounded-lg border border-border bg-card px-2 py-2 text-xs text-foreground focus:border-primary focus:outline-none"
+                    >
+                      {TYPE_OPTIONS.map((t) => (
+                        <option key={t.value} value={t.value}>
+                          {t.label}
+                        </option>
+                      ))}
+                    </select>
+                    <label className="col-span-1 flex items-center justify-center" title="Required">
+                      <input
+                        type="checkbox"
+                        checked={!!f.required}
+                        onChange={(e) => patchField(i, { required: e.target.checked })}
+                        className="h-4 w-4 rounded border-border accent-[var(--primary)]"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => removeField(i)}
+                      className="col-span-1 flex justify-center rounded-lg p-2 text-muted hover:bg-danger/10 hover:text-danger"
+                      aria-label="Remove field"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                  {f.type === 'select' && (
+                    <input
+                      placeholder="library.config.ts libName, e.g. location"
+                      value={f.libraryName ?? ''}
+                      onChange={(e) => patchField(i, { libraryName: e.target.value })}
+                      className="ml-0 w-full rounded-lg border border-border bg-card px-2.5 py-2 font-mono text-xs text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30"
+                    />
+                  )}
                 </div>
               ))}
               <p className="pt-1 text-[11px] text-muted">

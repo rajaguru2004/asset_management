@@ -3,6 +3,11 @@
 
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { seedLibraries } from './seeds/libraries';
+import { seedAssets } from './seeds/assets';
+import { seedAllocations } from './seeds/allocations';
+import { seedBookings } from './seeds/bookings';
+import { seedMaintenance } from './seeds/maintenance';
 
 const prisma = new PrismaClient();
 
@@ -118,6 +123,13 @@ async function main() {
   await prisma.department.update({ where: { id: it.id }, data: { headId: raj.id } });
   await prisma.department.update({ where: { id: hr.id }, data: { headId: priya.id } });
   await prisma.department.update({ where: { id: fin.id }, data: { headId: maya.id } });
+
+  // ── Module 4-7 seeds (appended) ─────────────────────────────────────────
+  await seedLibraries(prisma);
+  await seedAssets(prisma);
+  await seedAllocations(prisma);
+  await seedBookings(prisma);
+  await seedMaintenance(prisma);
 
   console.log('✅ Seed complete');
   console.log('   Admin  → admin@assetflow.com / Admin@123');
