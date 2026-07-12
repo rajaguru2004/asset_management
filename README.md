@@ -78,7 +78,7 @@ This repository currently ships the foundation of that vision — **Login/Signup
 The next modules — Asset Registry, Allocation & Transfer, Resource Booking, Maintenance,
 Audit Cycles, Reports & Analytics, and Notifications — are fully designed as detailed build
 plans in [`docs/`](docs/), ready for the team to build out module by module (see
-[Product Roadmap](#product-roadmap) and [`CLAUDE.md`](CLAUDE.md) for the build process).
+[Product Roadmap](#product-roadmap) for the build process).
 
 ---
 
@@ -253,7 +253,6 @@ exists to drive auto-generated asset tags like `AF-0001`.
 asset_management/
 ├── package.json                # root — concurrently dev/build/start scripts
 ├── docker-compose.yml          # Postgres 16, host port 5433
-├── CLAUDE.md                   # team build process for the next modules
 ├── docs/                       # detailed build plans for every upcoming module
 │   ├── project_scope.md
 │   ├── module-01-03-auth-organization.md
@@ -571,7 +570,7 @@ any Employee → they gain access on their next request, live.
 
 ## Contributing
 
-Full collaboration rules live in **[`CLAUDE.md`](CLAUDE.md)**. In short:
+Here are the collaboration rules in short:
 
 1. **One module per feature branch, one owner** — branch naming: `feat/module-<NN>-<slug>`.
 2. **Own your folders; append to shared files.**
