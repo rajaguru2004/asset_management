@@ -20,16 +20,28 @@ export function StatCard({
   value,
   accent = 'primary',
   hint,
+  onClick,
 }: {
   icon: LucideIcon;
   label: string;
   value: number;
   accent?: Accent;
   hint?: string;
+  onClick?: () => void;
 }) {
   const animated = useCountUp(value);
   return (
-    <Card className="p-5">
+    <Card
+      className={cn(
+        'p-5',
+        onClick &&
+          'cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring',
+      )}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onClick={onClick}
+      onKeyDown={onClick ? (e) => e.key === 'Enter' && onClick() : undefined}
+    >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-medium text-muted">{label}</p>

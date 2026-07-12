@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { Plus } from 'lucide-react';
+import { LoadingRows } from '@/components/common/Spinner';
 import { Button } from '@/components/ui/Button';
 import { PermissionGate } from '@/components/common/PermissionGate';
 import { MaintenanceBoard } from '@/components/maintenance/MaintenanceBoard';
@@ -27,7 +28,9 @@ export default function MaintenancePage() {
         </PermissionGate>
       </div>
 
-      <MaintenanceBoard />
+      <Suspense fallback={<LoadingRows />}>
+        <MaintenanceBoard />
+      </Suspense>
 
       <RequestForm open={formOpen} onClose={() => setFormOpen(false)} />
     </div>

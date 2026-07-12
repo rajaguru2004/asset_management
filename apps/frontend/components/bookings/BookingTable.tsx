@@ -1,10 +1,12 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { CalendarClock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { CalendarClock, ChevronLeft, ChevronRight, Clock3 } from 'lucide-react';
 import { useBookings } from '@/hooks/useBookings';
 import { useAssets } from '@/hooks/useAssets';
 import { CancelBookingDialog } from './CancelBookingDialog';
+import { BookingDetailModal } from './BookingDetailModal';
 import { Card } from '@/components/ui/Card';
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -29,12 +31,26 @@ const STATUS_OPTIONS: { value: BookingStatus | ''; label: string }[] = [
   { value: 'REJECTED', label: 'Rejected' },
 ];
 
+function formatDuration(startTime: string, endTime: string) {
+  const mins = Math.round((new Date(endTime).getTime() - new Date(startTime).getTime()) / 60000);
+  if (mins < 60) return `${mins} min`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m ? `${h} h ${m} min` : `${h} h`;
+}
+
 export function BookingTable() {
+  // Seed filters from the URL so drill-throughs land pre-filtered.
+  const searchParams = useSearchParams();
   const { data: assetsData } = useAssets({ isShared: true, limit: 100 });
-  const [assetFilter, setAssetFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState<BookingStatus | ''>('');
+  const [assetFilter, setAssetFilter] = useState(() => searchParams.get('assetId') ?? '');
+  const [statusFilter, setStatusFilter] = useState<BookingStatus | ''>(
+    () => (searchParams.get('status') as BookingStatus) ?? '',
+  );
+  const [upcomingOnly, setUpcomingOnly] = useState(false);
   const [page, setPage] = useState(1);
   const [cancelling, setCancelling] = useState<Booking | null>(null);
+  const [detail, setDetail] = useState<Booking | null>(null);
 
   const query = useMemo(
     () => ({
@@ -52,7 +68,10 @@ export function BookingTable() {
     ...(assetsData?.items ?? []).map((a) => ({ value: String(a.id), label: a.name })),
   ];
 
-  const items = data?.items ?? [];
+  const allItems = data?.items ?? [];
+  const items = upcomingOnly
+    ? allItems.filter((b) => new Date(b.startTime).getTime() > Date.now())
+    : allItems;
   const totalPages = data?.totalPages ?? 1;
 
   const canCancel = (b: Booking) => b.status === 'CONFIRMED' && new Date(b.startTime).getTime() > Date.now();
@@ -77,6 +96,14 @@ export function BookingTable() {
           }}
         />
       </div>
+      <Button
+        type="button"
+        size="sm"
+        variant={upcomingOnly ? 'primary' : 'outline'}
+        onClick={() => setUpcomingOnly((v) => !v)}
+      >
+        <Clock3 className="h-4 w-4" /> Upcoming only
+      </Button>
 
       <Card>
         {isLoading ? (
@@ -91,6 +118,7 @@ export function BookingTable() {
                   <TH>Asset</TH>
                   <TH>Purpose</TH>
                   <TH>When</TH>
+                  <TH>Duration</TH>
                   <TH>Booked by</TH>
                   <TH>Status</TH>
                   <TH className="text-right">Actions</TH>
@@ -98,7 +126,7 @@ export function BookingTable() {
               </THead>
               <TBody>
                 {items.map((b) => (
-                  <TR key={b.id}>
+                  <TR key={b.id} className="cursor-pointer" onClick={() => setDetail(b)}>
                     <TD>
                       <Badge variant="neutral" className="font-mono">
                         {b.asset.assetTag}
@@ -111,6 +139,7 @@ export function BookingTable() {
                       {new Date(b.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} –{' '}
                       {new Date(b.endTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </TD>
+                    <TD className="whitespace-nowrap text-muted">{formatDuration(b.startTime, b.endTime)}</TD>
                     <TD className="text-muted">
                       {b.bookedBy.firstName} {b.bookedBy.lastName}
                     </TD>
@@ -120,7 +149,14 @@ export function BookingTable() {
                     <TD>
                       <div className="flex justify-end">
                         {canCancel(b) && (
-                          <Button size="sm" variant="outline" onClick={() => setCancelling(b)}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCancelling(b);
+                            }}
+                          >
                             Cancel
                           </Button>
                         )}
@@ -164,6 +200,14 @@ export function BookingTable() {
         )}
       </Card>
 
+      <BookingDetailModal
+        booking={detail}
+        onClose={() => setDetail(null)}
+        onCancelBooking={(b) => {
+          setDetail(null);
+          setCancelling(b);
+        }}
+      />
       <CancelBookingDialog booking={cancelling} onClose={() => setCancelling(null)} />
     </div>
   );

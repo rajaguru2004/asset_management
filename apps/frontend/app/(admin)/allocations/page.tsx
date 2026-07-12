@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { ArrowLeftRight, Clock3 } from 'lucide-react';
+import { LoadingRows } from '@/components/common/Spinner';
 import { useAuthStore } from '@/store/authStore';
 import { Action, Resource, hasPermission } from '@/lib/permissions';
 import { Tabs, type TabItem } from '@/components/common/Tabs';
@@ -36,7 +37,11 @@ export default function AllocationsPage() {
       <Tabs tabs={tabs} active={active} onChange={setActive} />
 
       <div className="pt-1">
-        {active === 'allocations' && <AllocationTable />}
+        {active === 'allocations' && (
+          <Suspense fallback={<LoadingRows />}>
+            <AllocationTable />
+          </Suspense>
+        )}
         {active === 'transfers' && canManage && <TransferQueue />}
       </div>
     </div>

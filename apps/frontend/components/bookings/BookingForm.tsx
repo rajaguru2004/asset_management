@@ -17,7 +17,22 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export function BookingForm({ open, onClose }: { open: boolean; onClose: () => void }) {
+export interface BookingFormInitial {
+  assetId?: number;
+  date?: string;
+  startTime?: string;
+  endTime?: string;
+}
+
+export function BookingForm({
+  open,
+  onClose,
+  initial,
+}: {
+  open: boolean;
+  onClose: () => void;
+  initial?: BookingFormInitial;
+}) {
   const { data: assetsData } = useAssets({ isShared: true, limit: 100 });
   const { create } = useBookingMutations();
 
@@ -30,13 +45,13 @@ export function BookingForm({ open, onClose }: { open: boolean; onClose: () => v
 
   useEffect(() => {
     if (!open) return;
-    setAssetId('');
-    setDate(todayISO());
-    setStartTime('09:00');
-    setEndTime('10:00');
+    setAssetId(initial?.assetId ?? '');
+    setDate(initial?.date ?? todayISO());
+    setStartTime(initial?.startTime ?? '09:00');
+    setEndTime(initial?.endTime ?? '10:00');
     setPurpose('');
     setClash(null);
-  }, [open]);
+  }, [open, initial]);
 
   const assetOptions = (assetsData?.items ?? []).map((a) => ({ value: a.id, label: a.name }));
 

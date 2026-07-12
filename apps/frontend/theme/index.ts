@@ -31,4 +31,16 @@ export const STATUS_COLORS: Record<string, string> = {
   UNDER_MAINTENANCE: '#f59e0b',
   RETIRED: '#64748b',
   LOST: '#ef4444',
+  ALLOCATED: '#6366f1',
+  RESERVED: '#0ea5e9',
+  DISPOSED: '#94a3b8',
 };
+
+/** Shared recharts Tooltip contentStyle that follows the light/dark tokens. */
+export const CHART_TOOLTIP_STYLE = {
+  backgroundColor: 'var(--card)',
+  border: '1px solid var(--border)',
+  borderRadius: '0.5rem',
+  color: 'var(--foreground)',
+  fontSize: '0.8rem',
+} as const;

@@ -1,8 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { AlertCircle, ArrowLeftRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAllocations } from '@/hooks/useAllocations';
+import { useCategories } from '@/hooks/useCategories';
 import { ReturnModal } from './ReturnModal';
 import { Card } from '@/components/ui/Card';
 import { Badge, type BadgeVariant } from '@/components/ui/Badge';
@@ -29,14 +31,31 @@ const STATUS_OPTIONS: { value: AllocationStatus | ''; label: string }[] = [
 ];
 
 export function AllocationTable() {
-  const [statusFilter, setStatusFilter] = useState<AllocationStatus | ''>('');
-  const [overdueOnly, setOverdueOnly] = useState(false);
+  // Seed filters from the URL so dashboard drill-throughs land pre-filtered.
+  const searchParams = useSearchParams();
+  const [statusFilter, setStatusFilter] = useState<AllocationStatus | ''>(
+    () => (searchParams.get('status') as AllocationStatus) ?? '',
+  );
+  const [categoryFilter, setCategoryFilter] = useState(() => searchParams.get('categoryId') ?? '');
+  const [overdueOnly, setOverdueOnly] = useState(() => searchParams.get('overdue') === 'true');
   const [page, setPage] = useState(1);
   const [returning, setReturning] = useState<Allocation | null>(null);
 
+  const { data: categories } = useCategories();
+  const categoryOptions = [
+    { value: '', label: 'All categories' },
+    ...(categories ?? []).map((c) => ({ value: String(c.id), label: c.name })),
+  ];
+
   const query = useMemo(
-    () => ({ status: statusFilter || undefined, overdue: overdueOnly || undefined, page, limit: 8 }),
-    [statusFilter, overdueOnly, page],
+    () => ({
+      status: statusFilter || undefined,
+      categoryId: categoryFilter ? Number(categoryFilter) : undefined,
+      overdue: overdueOnly || undefined,
+      page,
+      limit: 8,
+    }),
+    [statusFilter, categoryFilter, overdueOnly, page],
   );
   const { data, isLoading, isFetching } = useAllocations(query);
 
@@ -55,6 +74,15 @@ export function AllocationTable() {
           onChange={(e) => {
             setPage(1);
             setStatusFilter(e.target.value as AllocationStatus | '');
+          }}
+          className="w-48"
+        />
+        <Select
+          options={categoryOptions}
+          value={categoryFilter}
+          onChange={(e) => {
+            setPage(1);
+            setCategoryFilter(e.target.value);
           }}
           className="w-48"
         />

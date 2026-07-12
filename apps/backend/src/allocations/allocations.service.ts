@@ -31,6 +31,9 @@ export class AllocationsService {
       userId: query.userId,
       departmentId: query.departmentId,
     };
+    if (query.categoryId) {
+      where.asset = { categoryId: query.categoryId };
+    }
     if (query.overdue) {
       where.status = AllocationStatus.ACTIVE;
       where.expectedReturnDate = { lt: new Date() };

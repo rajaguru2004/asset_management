@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { CalendarClock, List, Plus } from 'lucide-react';
+import { LoadingRows } from '@/components/common/Spinner';
 import { Tabs, type TabItem } from '@/components/common/Tabs';
 import { Button } from '@/components/ui/Button';
 import { PermissionGate } from '@/components/common/PermissionGate';
@@ -36,7 +37,11 @@ export default function BookingsPage() {
       <Tabs tabs={TABS} active={active} onChange={setActive} />
 
       <div className="pt-1">
-        {active === 'list' && <BookingTable />}
+        {active === 'list' && (
+          <Suspense fallback={<LoadingRows />}>
+            <BookingTable />
+          </Suspense>
+        )}
         {active === 'calendar' && <BookingCalendar />}
       </div>
 
