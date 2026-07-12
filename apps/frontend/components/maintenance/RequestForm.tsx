@@ -6,7 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
-import { useAssets } from '@/hooks/useAssets';
+import { useAssetOptions } from '@/hooks/useAssets';
 import { useMaintenanceMutations } from '@/hooks/useMaintenance';
 import { getErrorMessage } from '@/lib/apiError';
 import type { MaintenancePriority } from '@/types/maintenance';
@@ -18,7 +18,7 @@ const PRIORITY_OPTIONS: { value: MaintenancePriority; label: string }[] = [
 ];
 
 export function RequestForm({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { data: assetsData } = useAssets({ limit: 100 });
+  const { data: assetOpts } = useAssetOptions();
   const { create } = useMaintenanceMutations();
 
   const [assetId, setAssetId] = useState<number | ''>('');
@@ -34,7 +34,7 @@ export function RequestForm({ open, onClose }: { open: boolean; onClose: () => v
     setPriority('MEDIUM');
   }, [open]);
 
-  const assetOptions = (assetsData?.items ?? []).map((a) => ({ value: a.id, label: `${a.assetTag} — ${a.name}` }));
+  const assetOptions = (assetOpts ?? []).map((a) => ({ value: a.id, label: `${a.assetTag} — ${a.name}` }));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();

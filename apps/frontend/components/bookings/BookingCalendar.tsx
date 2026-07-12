@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import type { DateSelectArg, EventClickArg, EventInput } from '@fullcalendar/core';
-import { useAssets } from '@/hooks/useAssets';
+import { useAssetOptions } from '@/hooks/useAssets';
 import { useBookingCalendar } from '@/hooks/useBookings';
 import { useAuthStore } from '@/store/authStore';
 import { Action, Resource, hasPermission } from '@/lib/permissions';
@@ -27,7 +27,7 @@ export function BookingCalendar() {
   const roleId = useAuthStore((s) => s.user?.roleId);
   const canCreate = hasPermission(roleId, Resource.BOOKINGS, Action.CREATE);
 
-  const { data: assetsData } = useAssets({ isShared: true, limit: 100 });
+  const { data: assetOpts } = useAssetOptions(true);
   const [assetId, setAssetId] = useState<number | ''>('');
   const [range, setRange] = useState<{ from: string; to: string } | null>(null);
   const [detail, setDetail] = useState<Booking | null>(null);
@@ -38,7 +38,7 @@ export function BookingCalendar() {
 
   const assetOptions = [
     { value: '', label: 'All shared assets' },
-    ...(assetsData?.items ?? []).map((a) => ({ value: a.id, label: a.name })),
+    ...(assetOpts ?? []).map((a) => ({ value: a.id, label: a.name })),
   ];
 
   const events = useMemo<EventInput[]>(() => {

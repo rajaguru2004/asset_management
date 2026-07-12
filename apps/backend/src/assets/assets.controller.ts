@@ -20,6 +20,14 @@ export class AssetsController {
     return this.assets.findAll(query);
   }
 
+  // Auth-only (no ASSETS permission): every role needs this list to raise
+  // bookings/maintenance requests. Returns minimal, non-sensitive fields.
+  @Get('options')
+  @ApiOperation({ summary: 'Minimal asset list for dropdowns (all authenticated roles)' })
+  options(@Query('isShared') isShared?: string) {
+    return this.assets.options(isShared === undefined ? undefined : isShared === 'true');
+  }
+
   @Get(':id')
   @RequirePermission({ resource: Resource.ASSETS, action: Action.VIEW })
   @ApiOperation({ summary: 'Detail + current holder + recent maintenance history' })

@@ -26,9 +26,22 @@ export interface AssetQuery {
   limit?: number;
 }
 
+export interface AssetOption {
+  id: number;
+  assetTag: string;
+  name: string;
+  status: AssetStatus;
+  isShared: boolean;
+}
+
 const assetService = {
   list(query: AssetQuery = {}): Promise<ApiResponse<Paginated<Asset>>> {
     return axiosInstance.get('/assets', { params: query });
+  },
+  options(isShared?: boolean): Promise<ApiResponse<AssetOption[]>> {
+    return axiosInstance.get('/assets/options', {
+      params: isShared === undefined ? {} : { isShared },
+    });
   },
   get(id: number): Promise<ApiResponse<AssetDetail>> {
     return axiosInstance.get(`/assets/${id}`);

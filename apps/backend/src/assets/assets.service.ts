@@ -73,6 +73,15 @@ export class AssetsService {
     });
   }
 
+  /** Minimal dropdown list for booking/maintenance forms — safe for all authenticated roles. */
+  options(isShared?: boolean) {
+    return this.prisma.asset.findMany({
+      where: { isActive: true, ...(isShared !== undefined ? { isShared } : {}) },
+      select: { id: true, assetTag: true, name: true, status: true, isShared: true },
+      orderBy: { name: 'asc' },
+    });
+  }
+
   async findOne(id: number) {
     const asset = await this.prisma.asset.findUnique({
       where: { id },

@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CalendarClock, ChevronLeft, ChevronRight, Clock3 } from 'lucide-react';
 import { useBookings } from '@/hooks/useBookings';
-import { useAssets } from '@/hooks/useAssets';
+import { useAssetOptions } from '@/hooks/useAssets';
 import { CancelBookingDialog } from './CancelBookingDialog';
 import { BookingDetailModal } from './BookingDetailModal';
 import { Card } from '@/components/ui/Card';
@@ -42,7 +42,7 @@ function formatDuration(startTime: string, endTime: string) {
 export function BookingTable() {
   // Seed filters from the URL so drill-throughs land pre-filtered.
   const searchParams = useSearchParams();
-  const { data: assetsData } = useAssets({ isShared: true, limit: 100 });
+  const { data: assetOpts } = useAssetOptions(true);
   const [assetFilter, setAssetFilter] = useState(() => searchParams.get('assetId') ?? '');
   const [statusFilter, setStatusFilter] = useState<BookingStatus | ''>(
     () => (searchParams.get('status') as BookingStatus) ?? '',
@@ -65,7 +65,7 @@ export function BookingTable() {
 
   const assetOptions = [
     { value: '', label: 'All assets' },
-    ...(assetsData?.items ?? []).map((a) => ({ value: String(a.id), label: a.name })),
+    ...(assetOpts ?? []).map((a) => ({ value: String(a.id), label: a.name })),
   ];
 
   const allItems = data?.items ?? [];

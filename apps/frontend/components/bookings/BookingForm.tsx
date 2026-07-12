@@ -6,7 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
-import { useAssets } from '@/hooks/useAssets';
+import { useAssetOptions } from '@/hooks/useAssets';
 import { useBookingMutations } from '@/hooks/useBookings';
 import { AvailabilityPreview } from './AvailabilityPreview';
 import { getErrorMessage } from '@/lib/apiError';
@@ -33,7 +33,7 @@ export function BookingForm({
   onClose: () => void;
   initial?: BookingFormInitial;
 }) {
-  const { data: assetsData } = useAssets({ isShared: true, limit: 100 });
+  const { data: assetOpts } = useAssetOptions(true);
   const { create } = useBookingMutations();
 
   const [assetId, setAssetId] = useState<number | ''>('');
@@ -53,7 +53,7 @@ export function BookingForm({
     setClash(null);
   }, [open, initial]);
 
-  const assetOptions = (assetsData?.items ?? []).map((a) => ({ value: a.id, label: a.name }));
+  const assetOptions = (assetOpts ?? []).map((a) => ({ value: a.id, label: a.name }));
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
